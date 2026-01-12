@@ -185,7 +185,7 @@ quiz_data = {
 
 # --- 3. LOGIKK FOR MENY OG NAVIGASJON ---
 with st.sidebar:
-    st.markdown("<h2 style='color:white; margin-bottom:20px;'>Finora Bygg</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='color:white; margin-bottom:20px;'>Byggfag treneren</h2>", unsafe_allow_html=True)
     
     st.markdown("<p style='color:white; font-size:12px; margin-bottom:5px; font-weight:bold;'>MAIN</p>", unsafe_allow_html=True)
     side = st.radio("", ["🏠 Dashboard", "🤖 AI Veileder"], label_visibility="collapsed")
@@ -242,4 +242,5 @@ else: # Dashboard
         st.markdown("<div class='category-card'><h4>Din Fremdrift</h4><h2 style='color:#da70d6;'>8/15 mål</h2></div>", unsafe_allow_html=True)
     with col2:
         st.markdown("<div class='category-card'><h4>Status</h4><h2 style='color:#00ff00;'>Aktiv Lærling</h2></div>", unsafe_allow_html=True)
+
 
