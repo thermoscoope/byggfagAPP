@@ -33,7 +33,7 @@ tema = st.sidebar.selectbox("Hva vil du utforske?", ["Hjem", "Quiz: Verktøy", "
 
 if tema == "Hjem":
     st.subheader("Klar for å klatre i gradene?")
-    st.write("Samle poeng ved å svare på quizer og gå gjennom leksjoner. Du trenger **50 poeng** for å bli Fagarbeider!")
+    st.write("Samle poeng ved å svare på quizer og gå gjennom leksjoner. Du trenger **50 poeng** for å bli en byggmester!")
     st.image("forsidebilde.jpg", caption="Byggfag i fokus") # Pass på at navnet stemmer med filen du laster opp
 
 elif tema == "Quiz: Verktøy":
@@ -54,3 +54,4 @@ elif tema == "Leksjon: Betong":
     st.subheader("🏗️ Leksjon: Betong")
     st.write("Betong er et av de viktigste materialene vi har...")
     # Legg inn din tekst fra notebook her
+
