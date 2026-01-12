@@ -1,57 +1,56 @@
 import streamlit as st
+import datetime
 
-# Initialiser poengsum og nivå i "session_state" så de ikke nullstilles
-if 'points' not in st.session_state:
-    st.session_state.points = 0
-if 'level' not in st.session_state:
-    st.session_state.level = "Lærling"
+# Sidetittel og ikon
+st.set_page_config(page_title="Bygg-Loggen", page_icon="🏗️")
 
-# --- DESIGN OG STIL ---
-st.set_page_config(page_title="Byggfag Master", page_icon="🏗️")
+# Enkel styling for å gjøre den mer "leken"
 st.markdown("""
     <style>
-    .stApp { background-color: #f4f4f4; border-top: 15px solid #FFD700; }
-    .score-box { background-color: #343a40; color: #FFD700; padding: 20px; border-radius: 10px; text-align: center; }
+    .main { background-color: #f0f2f6; }
+    .stButton>button { width: 100%; border-radius: 10px; height: 3em; background-color: #ffc107; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- TOPPANEL (Poeng og Nivå) ---
-col1, col2, col3 = st.columns(3)
+st.title("🏗️ Min Praktiske Yrkesutøvelse")
+st.write("Dokumenter arbeidet ditt direkte fra byggeplassen.")
+
+# 1. VELG FAG (Basert på utdanningsvalg.png)
+fag_liste = ["Tømrer", "Rørlegger", "Betong og mur", "Anleggsteknikk", "Overflateteknikk"]
+valgt_fag = st.selectbox("Hvilket fag jobber du med i dag?", fag_liste)
+
+st.divider()
+
+# 2. HMS OG VERNEUTSTYR (Basert på kompetansemål arbeidsmiljø og dokumentasjon.png)
+st.subheader("🛡️ HMS og Dokumentasjon")
+col1, col2 = st.columns(2)
+
 with col1:
-    st.markdown(f"<div class='score-box'><h3>POENG: {st.session_state.points}</h3></div>", unsafe_allow_html=True)
+    hms_sjekk = st.checkbox("Jeg har vurdert risiko") # Dekker: "vurdere risiko og utføre forebyggende tiltak"
+    ryddig_plass = st.checkbox("Arbeidsplassen er ryddig") # Dekker: "betydningen av orden på bygge- og anleggsplasser"
+
 with col2:
-    st.markdown(f"<div class='score-box'><h3>NIVÅ: {st.session_state.level}</h3></div>", unsafe_allow_html=True)
-with col3:
-    if st.session_state.points >= 50:
-        st.session_state.level = "Fagarbeider"
+    verneutstyr = st.checkbox("Bruker riktig verneutstyr") # Dekker: "velge ut og bruke personlig verneutstyr"
+
+# 3. PRAKTISK ARBEID (Basert på kompetansemål praktisk yrkesutøvelse.png)
+st.subheader("🛠️ Dagens innsats")
+beskrivelse = st.text_area("Hva har du gjort i dag?", placeholder="Beskriv arbeidet med fagterminologi...")
+
+# Kamera-funksjon for dokumentasjon
+bilde = st.camera_input("Ta bilde av utført arbeid eller arbeidsstilling") # Dekker: "dokumentere eget arbeid"
+
+# 4. REFLEKSJON (Viktig del av vurderingen)
+st.subheader("🧐 Egenvurdering")
+mestring = st.select_slider(
+    "Hvordan gikk det i dag?",
+    options=["Trenger hjelp", "Trenger litt veiledning", "Jobber selvstendig", "Kan lære bort til andre"]
+)
+
+# LAGRE-KNAPP
+if st.button("Lagre loggføring"):
+    if bilde and hms_sjekk:
         st.balloons()
-    st.progress(min(st.session_state.points / 100, 1.0))
-
-# --- HOVEDMENY ---
-st.title("👷 Velkommen til Byggeplassen")
-tema = st.sidebar.selectbox("Hva vil du utforske?", ["Hjem", "Quiz: Verktøy", "Leksjon: Betong", "Leksjon: Treverk"])
-
-if tema == "Hjem":
-    st.subheader("Klar for å klatre i gradene?")
-    st.write("Samle poeng ved å svare på quizer og gå gjennom leksjoner. Du trenger **50 poeng** for å bli en byggmester!")
-    st.image("forsidebilde.jpg", caption="Byggfag i fokus") # Pass på at navnet stemmer med filen du laster opp
-
-elif tema == "Quiz: Verktøy":
-    st.subheader("🔨 Verktøy-Quiz")
-    st.write("Hva brukes dette verktøyet til?")
-    st.image("vater.jpg", width=300) # Pass på at navnet stemmer
-    
-    svar = st.radio("Velg svar:", ["Slå inn spiker", "Sjekke om noe er rett", "Kutte treverket"])
-    
-    if st.button("Sjekk svar"):
-        if svar == "Sjekke om noe er rett":
-            st.success("Riktig! +10 poeng")
-            st.session_state.points += 10
-        else:
-            st.error("Feil! Prøv igjen.")
-
-elif tema == "Leksjon: Betong":
-    st.subheader("🏗️ Leksjon: Betong")
-    st.write("Betong er et av de viktigste materialene vi har...")
-    # Legg inn din tekst fra notebook her
-
+        st.success(f"Loggført! {valgt_fag}-oppdraget er lagret.")
+        # Her kan man senere legge til logikk for å sende dette til en database eller e-post
+    else:
+        st.error("Husk å ta bilde og sjekke HMS før du lagrer!")
