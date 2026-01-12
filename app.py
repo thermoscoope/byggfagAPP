@@ -3,7 +3,7 @@ import requests
 from streamlit_lottie import st_lottie
 
 # --- 1. KONFIGURASJON OG MØRKT DESIGN (FINORA-STIL) ---
-st.set_page_config(page_title="Byggfag Pro", page_icon="🏗️", layout="wide")
+st.set_page_config(page_title="Byggfag treneren", page_icon="🏗️", layout="wide")
 
 # Avansert CSS for å etterligne Finora-designet
 st.markdown("""
@@ -245,3 +245,4 @@ elif side == "📝 Digital Loggbok":
         st.checkbox("Bruker personlig verneutstyr")
         st.checkbox("Kildesortert avfall")
         st.button("SEND TIL LÆRER")
+
