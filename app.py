@@ -1,56 +1,64 @@
 import streamlit as st
-import datetime
 
-# Sidetittel og ikon
-st.set_page_config(page_title="Bygg-Loggen", page_icon="🏗️")
+# Konfigurasjon
+st.set_page_config(page_title="Byggfag-Portalen", page_icon="🏗️")
 
-# Enkel styling for å gjøre den mer "leken"
-st.markdown("""
-    <style>
-    .main { background-color: #f0f2f6; }
-    .stButton>button { width: 100%; border-radius: 10px; height: 3em; background-color: #ffc107; }
-    </style>
-    """, unsafe_allow_html=True)
-
-st.title("🏗️ Min Praktiske Yrkesutøvelse")
-st.write("Dokumenter arbeidet ditt direkte fra byggeplassen.")
-
-# 1. VELG FAG (Basert på utdanningsvalg.png)
-fag_liste = ["Tømrer", "Rørlegger", "Betong og mur", "Anleggsteknikk", "Overflateteknikk"]
-valgt_fag = st.selectbox("Hvilket fag jobber du med i dag?", fag_liste)
-
-st.divider()
-
-# 2. HMS OG VERNEUTSTYR (Basert på kompetansemål arbeidsmiljø og dokumentasjon.png)
-st.subheader("🛡️ HMS og Dokumentasjon")
-col1, col2 = st.columns(2)
-
-with col1:
-    hms_sjekk = st.checkbox("Jeg har vurdert risiko") # Dekker: "vurdere risiko og utføre forebyggende tiltak"
-    ryddig_plass = st.checkbox("Arbeidsplassen er ryddig") # Dekker: "betydningen av orden på bygge- og anleggsplasser"
-
-with col2:
-    verneutstyr = st.checkbox("Bruker riktig verneutstyr") # Dekker: "velge ut og bruke personlig verneutstyr"
-
-# 3. PRAKTISK ARBEID (Basert på kompetansemål praktisk yrkesutøvelse.png)
-st.subheader("🛠️ Dagens innsats")
-beskrivelse = st.text_area("Hva har du gjort i dag?", placeholder="Beskriv arbeidet med fagterminologi...")
-
-# Kamera-funksjon for dokumentasjon
-bilde = st.camera_input("Ta bilde av utført arbeid eller arbeidsstilling") # Dekker: "dokumentere eget arbeid"
-
-# 4. REFLEKSJON (Viktig del av vurderingen)
-st.subheader("🧐 Egenvurdering")
-mestring = st.select_slider(
-    "Hvordan gikk det i dag?",
-    options=["Trenger hjelp", "Trenger litt veiledning", "Jobber selvstendig", "Kan lære bort til andre"]
+# --- SIDEBAR (HOVEDMENY) ---
+st.sidebar.title("🏗️ Byggfag-Navigasjon")
+valgt_program = st.sidebar.selectbox(
+    "Velg utdanningsprogram:",
+    ["Hjem", "Tømrer", "Rørlegger", "Betong og mur", "Anleggsteknikk"]
 )
 
-# LAGRE-KNAPP
-if st.button("Lagre loggføring"):
-    if bilde and hms_sjekk:
-        st.balloons()
-        st.success(f"Loggført! {valgt_fag}-oppdraget er lagret.")
-        # Her kan man senere legge til logikk for å sende dette til en database eller e-post
-    else:
-        st.error("Husk å ta bilde og sjekke HMS før du lagrer!")
+valgt_modus = st.sidebar.radio(
+    "Hva vil du gjøre?",
+    ["ℹ️ Informasjon", "❓ Quiz & Spørsmål", "📝 Utplassering / Loggbok"]
+)
+
+# --- HOVEDINNHOLD ---
+
+if valgt_program == "Hjem":
+    st.title("Velkommen til Byggfag-appen! 👷‍♂️")
+    st.write("Velg ditt utdanningsprogram i menyen til venstre for å starte.")
+    st.image("https://images.unsplash.com/photo-1541888946425-d81bb19480c5?auto=format&fit=crop&q=80&w=500", caption="Fremtidens fagarbeidere")
+
+else:
+    st.title(f"{valgt_modus} for {valgt_program}")
+
+    # --- MODUS: INFORMASJON ---
+    if valgt_modus == "ℹ️ Informasjon":
+        if valgt_program == "Tømrer":
+            st.write("### Om Tømrerfaget")
+            st.write("Som tømrer bygger du hus, hytter og andre trekonstruksjoner. Du lærer om alt fra grunnmur til ferdig tak.")
+            st.info("Visste du at tømrere står for en stor del av verdiskapningen i norsk byggenæring?")
+        else:
+            st.write(f"Her kommer informasjon om {valgt_program}...")
+
+    # --- MODUS: QUIZ & SPØRSMÅL ---
+    elif valgt_modus == "❓ Quiz & Spørsmål":
+        st.write("### Test din kunnskap!")
+        
+        if valgt_program == "Tømrer":
+            svar = st.radio("Hva er standard avstand mellom stenderne i en vegg (c/c)?", 
+                           ["30 cm", "60 cm", "90 cm"])
+            if st.button("Sjekk svar"):
+                if svar == "60 cm":
+                    st.success("Riktig! Du er klar for byggeplassen.")
+                else:
+                    st.error("Feil, prøv igjen! Tips: Tenk på platebredder.")
+
+    # --- MODUS: UTPLASSERING (DIN LOGGBOK) ---
+    elif valgt_modus == "📝 Utplassering / Loggbok":
+        st.write("### Dokumentasjon i bedrift")
+        st.info(f"Du er nå utplassert som {valgt_program}. Fyll ut dagens logg:")
+        
+        beskrivelse = st.text_area("Hva har du lært i bedriften i dag?")
+        hms_ok = st.checkbox("Jeg har fulgt bedriftens HMS-regler")
+        bilde = st.camera_input("Ta bilde av dagens arbeid")
+
+        if st.button("Lagre dagens logg"):
+            if bilde and hms_ok:
+                st.balloons()
+                st.success("Loggen er lagret og klar for læreren din!")
+            else:
+                st.warning("Husk bilde og HMS-sjekk!")
