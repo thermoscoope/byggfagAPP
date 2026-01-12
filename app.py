@@ -1,7 +1,7 @@
 import streamlit as st
 
 # --- 1. KONFIGURASJON OG AVANSERT MØRKT DESIGN ---
-st.set_page_config(page_title="Byggfag Pro", page_icon="🏗️", layout="wide")
+st.set_page_config(page_title="Byggfag treneren", page_icon="🏗️", layout="wide")
 
 # CSS for å gjenskape Finora-menyen med HVIT tekst
 st.markdown("""
@@ -242,3 +242,4 @@ else: # Dashboard
         st.markdown("<div class='category-card'><h4>Din Fremdrift</h4><h2 style='color:#da70d6;'>8/15 mål</h2></div>", unsafe_allow_html=True)
     with col2:
         st.markdown("<div class='category-card'><h4>Status</h4><h2 style='color:#00ff00;'>Aktiv Lærling</h2></div>", unsafe_allow_html=True)
+
