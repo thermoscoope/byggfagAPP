@@ -193,7 +193,7 @@ with tab_matte:
     m_kat = st.radio("Velg emne:", ["Omkrets", "Areal", "Volum", "Prosent & Svinn", "Målestokk", "Vinkler"], horizontal=True)
     
     if m_kat == "Omkrets":
-        st.write("### 📏 Omkrets – Lengden rundt")
+        st.write("### 📏 Omkrets – Hvor langt er det rundt?")
         st.write("Omkretsen er summen av alle sidene. Brukes til lister, gjerder eller grunnmursplast.")
         st.latex(r"Omkrets = S_1 + S_2 + S_3 + S_4")
         st.write("**Oppgave:** Et rom er 4m langt og 3m bredt. Hvor mange meter list trenger du?")
@@ -203,8 +203,8 @@ with tab_matte:
                 st.success("Riktig! (4+3+4+3)"); st.session_state.points += 5
 
     elif m_kat == "Areal":
-        st.write("### ⬛ Areal – Overflaten")
-        st.write("Areal forteller hvor stor en flate er ($m^2$). Brukes til gulv, maling eller gipsplater.")
+        st.write("### ⬛ Areal – Hvor stor er en flate?")
+        st.write("Areal forteller hvor stor en flate er ($m^2$). Brukes til å regne ut hvor stort et gulv, hvor mye maling trenger eller ulike plater man trenger til et område.")
         st.latex(r"Areal = L \times B")
         st.write("**Oppgave:** Du skal legge gulv i en bod på 2,5m x 4m. Hvor mange m²?")
         ans2 = st.radio("Svar:", ["6,5 m²", "10 m²", "8 m²"], index=None, key="m2")
@@ -224,7 +224,7 @@ with tab_matte:
 
     elif m_kat == "Prosent & Svinn":
         st.write("### 📈 Prosent og Svinn")
-        st.write("Vi legger til svinn (ofte 10%) fordi noe kappes bort. Gange med 1,10.")
+        st.write("Prosent betyr “av hundre”. Hvis man skal finne ut av hvor mye man må betale hvis en material koster 550 kr men satt ned 35 %, vil formelen bli slik: 550kr x 35% : 100 = 192,5 kr. 550 kr - 192,5 kr = 357,5 kr. Vi legger til svinn (ofte 10%-15%) fordi noe kappes bort. Gange med 1,10.")
         st.write("**Oppgave:** Du trenger 50 meter kledning. Med 10% svinn, hvor mye bestiller du?")
         ans3 = st.radio("Svar:", ["55m", "50,1m"], index=None, key="m3")
         if st.button("Sjekk Svinn"):
@@ -233,7 +233,7 @@ with tab_matte:
 
     elif m_kat == "Målestokk":
         st.write("### 🗺️ Målestokk")
-        st.write("Målestokk 1:50 betyr at virkeligheten er 50 ganger større enn tegningen.")
+        st.write("Målestokk 1:50 betyr at virkeligheten er 50 ganger større enn tegningen. Vi ganger lengden på tegningen med tallet i målestokken for å finne hvor stort det er i virkeligheten.")
         st.write("**Oppgave:** På tegning (1:50) måler du 10cm. Hvor langt er det i virkeligheten?")
         ans4 = st.radio("Svar:", ["5 meter", "50 cm"], index=None, key="m4")
         if st.button("Sjekk Målestokk"):
@@ -242,7 +242,7 @@ with tab_matte:
 
     elif m_kat == "Vinkler":
         st.write("### 📐 Vinkler (3-4-5 regelen)")
-        st.write("For å sjekke 90 grader. Hvis sidene er 3 og 4, må diagonalen være 5.")
+        st.write("Vinkler måles i grader og viser hvor mye to streker åpner seg. For å sjekke 90 grader. Hvis sidene er 3 og 4, må diagonalen være 5. For å finne ut om en vinkel er 90 grader, kan man bruke formelen 60cm/80cm=100cm")
         st.latex(r"a^2 + b^2 = c^2")
         st.write("**Oppgave:** Sidene er 60cm og 80cm. Hva er diagonalen i vinkel?")
         ans5 = st.radio("Svar:", ["100cm", "140cm"], index=None, key="m5")
@@ -264,3 +264,4 @@ with tab_quiz:
 
 with tab_leader:
     st.table(pd.DataFrame({"Navn": [st.session_state.user_name, "Lærer"], "Poeng": [st.session_state.points, 400]}).sort_values("Poeng", ascending=False))
+
