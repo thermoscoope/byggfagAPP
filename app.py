@@ -74,7 +74,7 @@ with col2:
                     ans = response.choices[0].message.content
                     st.session_state.messages.append({"role": "assistant", "content": ans})
                 else:
-                    st.error("API-nøkkel mangler!")
+                    st.error("API-nøkkel mangler i Secrets!")
             except:
                 st.error("Kunne ikke koble til AI.")
         for m in st.session_state.messages[-2:]:
@@ -82,12 +82,12 @@ with col2:
 
 st.divider()
 
-# --- DATABASE FOR ALLE 10 TEMAER (Info & Quiz) ---
+# --- DATABASE FOR ALLE 10 TEMAER ---
 data_db = {
     "Anleggsgartner": {
         "beskrivelse": "Bygger og vedlikeholder uterom, parker, hager og idrettsanlegg. Arbeid med stein, betong og planter.",
         "verktoy": "Vater, murersnor, steinkutter, maskiner for graving og komprimering.",
-        "utdanning": "Vg1 Bygg -> Vg2 Anleggsgartner -> 2 år lærlingid (Svennebrev).",
+        "utdanning": "Vg1 Bygg -> Vg2 Anleggsgartner -> 2 år lærlingtid (Svennebrev).",
         "quiz": ("Hva brukes en murersnor til?", ["Lage rette linjer", "Måle fukt", "Kutte stein"], "Lage rette linjer")
     },
     "Anleggsteknikk": {
@@ -99,7 +99,7 @@ data_db = {
     "Betong og mur": {
         "beskrivelse": "Oppføring av grunnmurer, vegger og konstruksjoner i betong, tegl og naturstein.",
         "verktoy": "Blandemaskin, murerkjei, vater, forskalingsutstyr.",
-        "utdanning": "Vg1 Bygg -> Vg2 Betong og mur -> 2 år lærlingid.",
+        "utdanning": "Vg1 Bygg -> Vg2 Betong og mur -> 2 år lærlingtid.",
         "quiz": ("Hvorfor brukes armering i betong?", ["Øke strekkfasthet", "Gjøre den lettere", "Pynt"], "Øke strekkfasthet")
     },
     "Klima, energi og miljøteknikk": {
@@ -129,7 +129,7 @@ data_db = {
     "Tømrer": {
         "beskrivelse": "Bygging og rehabilitering av hus og konstruksjoner i tre.",
         "verktoy": "Hammer, sag, vinkel, laser, drill, spikerpistol.",
-        "utdanning": "Vg1 Bygg -> Vg2 Tømrer -> 2 år lærlingid.",
+        "utdanning": "Vg1 Bygg -> Vg2 Tømrer -> 2 år lærlingtid.",
         "quiz": ("Hva er standard c/c på stendere?", ["60 cm", "30 cm", "120 cm"], "60 cm")
     },
     "Arbeidsmiljø og dokumentasjon": {
@@ -146,34 +146,13 @@ data_db = {
     }
 }
 
-# --- FANER ---
-tab_quiz, tab_leader, tab_info = st.tabs(["🎮 Quiz", "🏆 Leaderboard", "📚 Infokanal"])
-
-with tab_quiz:
-    valgt_tema = st.selectbox("Velg tema for quiz:", list(data_db.keys()))
-    if valgt_tema in data_db:
-        spm, valg, svar = data_db[valgt_tema]["quiz"]
-        st.write(f"### {spm}")
-        bruker_svar = st.radio("Velg svar:", valg, index=None, key=f"q_{valgt_tema}")
-        if st.button("Sjekk svar"):
-            if bruker_svar == svar:
-                st.success("RIKTIG! +20 poeng")
-                st.session_state.points += 20
-                st.balloons()
-                st.rerun()
-            elif bruker_svar is None:
-                st.warning("Velg et alternativ.")
-            else:
-                st.error("Feil svar. Prøv igjen!")
-
-with tab_leader:
-    st.write("### Toppliste")
-    data = {"Navn": [st.session_state.user_name, "Lærer (Demo)"], "Poeng": [st.session_state.points, 500]}
-    st.table(pd.DataFrame(data).sort_values(by="Poeng", ascending=False))
+# --- FANER (BYTTET PLASS PÅ INFO OG QUIZ) ---
+tab_info, tab_quiz, tab_leader = st.tabs(["📚 Infokanal", "🎮 Quiz", "🏆 Leaderboard"])
 
 with tab_info:
     st.header("Informasjon om programområdene")
-    valgt_info = st.selectbox("Velg fag for å se detaljer:", list(data_db.keys()), key="info_select")
+    st.write("Velg et fag for å se detaljer om arbeidsoppgaver, verktøy og utdanning.")
+    valgt_info = st.selectbox("Velg fag:", list(data_db.keys()), key="info_select")
     
     if valgt_info in data_db:
         f = data_db[valgt_info]
@@ -189,3 +168,36 @@ with tab_info:
         
         st.markdown("### 🎓 Utdanningsvei")
         st.info(f["utdanning"])
+
+with tab_quiz:
+    st.header("Tren på kompetansemålene")
+    valgt_tema = st.selectbox("Velg tema for quiz:", list(data_db.keys()), key="quiz_select")
+    
+    # Progresjons-logikk
+    if st.session_state.points < 100:
+        status = "Lærling-spire 🌱"
+    elif st.session_state.points < 300:
+        status = "Fagarbeider 🛠️"
+    else:
+        status = "Mester 🏆"
+    st.write(f"Din status: **{status}**")
+
+    if valgt_tema in data_db:
+        spm, valg, svar = data_db[valgt_tema]["quiz"]
+        st.write(f"### {spm}")
+        bruker_svar = st.radio("Velg svar:", valg, index=None, key=f"q_{valgt_tema}")
+        if st.button("Sjekk svar"):
+            if bruker_svar == svar:
+                st.success("RIKTIG! +20 poeng")
+                st.session_state.points += 20
+                st.balloons()
+                st.rerun()
+            elif bruker_svar is None:
+                st.warning("Vennligst velg et svar.")
+            else:
+                st.error("Feil svar. Prøv igjen!")
+
+with tab_leader:
+    st.write("### Toppliste")
+    data = {"Navn": [st.session_state.user_name, "Lærer (Demo)"], "Poeng": [st.session_state.points, 500]}
+    st.table(pd.DataFrame(data).sort_values(by="Poeng", ascending=False))
