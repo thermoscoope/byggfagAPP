@@ -28,14 +28,17 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # 2. Initialisering
-if 'points' not in st.session_state: st.session_state.points = 0
-if 'messages' not in st.session_state: st.session_state.messages = []
-if 'user_name' not in st.session_state: st.session_state.user_name = ""
+if 'points' not in st.session_state:
+    st.session_state.points = 0
+if 'messages' not in st.session_state:
+    st.session_state.messages = []
+if 'user_name' not in st.session_state:
+    st.session_state.user_name = ""
 
 # --- INNLOGGING ---
 if not st.session_state.user_name:
     st.title("🏗️ Velkommen til Byggfagtreneren")
-    name = st.text_input("Navn på elev:")
+    name = st.text_input("Skriv inn navnet ditt for å starte:")
     if st.button("Begynn"):
         if name:
             st.session_state.user_name = name
@@ -56,95 +59,97 @@ with col2:
                 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
                 response = client.chat.completions.create(
                     model="gpt-3.5-turbo",
-                    messages=[{"role": "system", "content": "Svar som en norsk byggmester. Kort og pedagogisk."}, {"role": "user", "content": user_prompt}]
+                    messages=[{"role": "system", "content": "Svar som en erfaren norsk byggmester. Kort og pedagogisk."}, {"role": "user", "content": user_prompt}]
                 )
                 st.session_state.messages.append({"role": "assistant", "content": response.choices[0].message.content})
-            except: st.error("AI-hjelper er utilgjengelig.")
-        for m in st.session_state.messages[-2:]: st.write(f"🗨️ {m['content']}")
+            except:
+                st.error("AI-hjelper utilgjengelig.")
+        for m in st.session_state.messages[-2:]:
+            st.write(f"🗨️ {m['content']}")
 
 st.divider()
 
-# --- UTVIDET DATABASE (INFO, VERKTØY, UTDANNING OG MOTIVASJON) ---
+# --- DATABASE FOR ALLE 10 TEMAER ---
 data_db = {
     "Anleggsgartner": {
-        "info": "🌱 **Hva lærer man?** Du lærer å skape vakre og funksjonelle uterom. Dette er faget for deg som trives ute og vil kombinere tekniske ferdigheter med levende natur.",
-        "verktoy": "🧱 Belegningssteinutstyr, murersnor, vater, steinkutter, laser og mindre gravemaskiner.",
-        "utdanning": "📜 Vg1 Bygg- og anleggsteknikk -> Vg2 Anleggsgartner -> 2 år lærlingtid.",
-        "videre": "🎓 Fagskole (anleggsgartnertekniker), mesterbrev eller landskapsarkitektur via Y-veien.",
-        "motivasjon": "✨ Liker du å se resultater som vokser og blir vakrere med årene? Som anleggsgartner setter du spor i miljøet som folk vil nyte i generasjoner!",
-        "quiz": ("Hva er en sentral del av arbeidet som anleggsgartner?", ["Overvannshåndtering og drenering", "Montere sikringsskap"], "Overvannshåndtering og drenering")
+        "beskrivelse": "🌱 Bygger og vedlikeholder uterom, parker og hager. 🧱 Kombinerer planter med stein, betong og treverk.",
+        "verktoy": "Vater, murersnor, steinkutter, maskiner for graving.",
+        "utdanning": "📜 Vg1 Bygg -> Vg2 Anleggsgartner -> 2 år lærlingtid.",
+        "videre": "🎓 Fagskole, mesterbrev eller landskapsarkitektur.",
+        "motivasjon": "✨ Liker du å se resultater som vokser og blir vakrere med årene? Her setter du spor folk vil nyte i generasjoner!",
+        "quiz": ("Hva brukes en murersnor til?", ["Lage rette linjer", "Måle fukt"], "Lage rette linjer")
     },
     "Anleggsteknikk": {
-        "info": "🚜 **Hva lærer man?** Du lærer å betjene enorme maskiner og bygge fundamentet for samfunnet vårt: veier, tunneler og baner.",
-        "verktoy": "🏗️ Gravemaskiner, hjullastere, dumpere, vals og avansert GPS-måleutstyr.",
-        "utdanning": "📜 Vg1 Bygg- og anleggsteknikk -> Vg2 Anleggsteknikk -> Lærling i maskinførerfaget.",
-        "videre": "🎓 Maskinentreprenørskolen, fagskole (anlegg) eller ingeniørstudier.",
-        "motivasjon": "💪 Er du fascinert av store krefter og store maskiner? Her får du flytte fjell og bygge veiene som binder landet sammen!",
-        "quiz": ("Hvilken maskin brukes til komprimering av masser?", ["Valse eller vibrasjonsplate", "Motorsag"], "Valse eller vibrasjonsplate")
+        "beskrivelse": "🚜 Betjener store maskiner for veibygging, tunneler og utgraving. 🏗️ Legger grunnlaget for samfunnet vårt.",
+        "verktoy": "Gravemaskiner, hjullastere, dumpere, GPS-måleutstyr.",
+        "utdanning": "📜 Vg1 Bygg -> Vg2 Anleggsteknikk -> Lærlingid.",
+        "videre": "🎓 Maskinentreprenørskolen, fagskole eller ingeniør.",
+        "motivasjon": "💪 Er du fascinert av store maskiner? Her får du flytte fjell og bygge veiene som binder landet sammen!",
+        "quiz": ("Hva er påbudt i grøft?", ["Hjelm og vernesko", "Hørselsvern"], "Hjelm og vernesko")
     },
     "Betong og mur": {
-        "info": "🏢 **Hva lærer man?** Du lærer å bygge de mest solide konstruksjonene vi har. Her handler det om styrke, presisjon og varighet.",
-        "verktoy": "🏗️ Forskalingsutstyr, blandemaskin, murerkjei, vinkelsliper og laser.",
-        "utdanning": "📜 Vg1 Bygg- og anleggsteknikk -> Vg2 Betong og mur -> Lærlingid.",
-        "videre": "🎓 Mesterbrev (Murmester), fagskole eller byggeteknikk.",
-        "motivasjon": "🧱 Vil du bygge noe som står i 100 år? Som murer eller betongarbeider er du arkitektens høyre hånd i å forme bybildet!",
-        "quiz": ("Hvorfor legger man armeringsstål i betong?", ["For å øke strekkfastheten", "For fargen"], "For å øke strekkfastheten")
+        "beskrivelse": "🏢 Bygger solide konstruksjoner i betong og stein. 🏗️ Fra grunnmurer til store bruer.",
+        "verktoy": "Forskalingsutstyr, blandemaskin, murerkjei, vater.",
+        "utdanning": "📜 Vg1 Bygg -> Vg2 Betong og mur -> Lærlingid.",
+        "videre": "🎓 Mesterbrev, fagskole eller byggeteknikk.",
+        "motivasjon": "🧱 Vil du bygge noe som står i 100 år? Her er du arkitektens høyre hånd i å forme bybildet!",
+        "quiz": ("Hvorfor armere betong?", ["Øke strekkfasthet", "For fargen"], "Øke strekkfasthet")
     },
     "Klima, energi og miljøteknikk": {
-        "info": "🌡️ **Hva lærer man?** Fremtidens bygg må være miljøvennlige. Du lærer om ventilasjon, varme og tekniske løsninger som sparer energi.",
-        "verktoy": "❄️ Måleinstrumenter for luft og temperatur, loddeutstyr, blikkenslagersaks og isolasjonsverktøy.",
-        "utdanning": "📜 Vg1 Bygg- og anleggsteknikk -> Vg2 Klima, energi og miljøteknikk -> Lærlingid.",
-        "videre": "🎓 KEM-ingeniør, fagskole eller spesialisering innen fornybar energi.",
-        "motivasjon": "🌍 Vil du ha en nøkkelrolle i det grønne skiftet? Her jobber du med teknologien som redder klimaet, ett bygg om gangen!",
-        "quiz": ("Hva er hovedformålet med ventilasjon?", ["God luftkvalitet og fjerning av fukt", "Gjøre rommet lysere"], "God luftkvalitet og fjerning av fukt")
+        "beskrivelse": "🌡️ Spesialister på inneklima og moderne energisparing. ❄️ Ventilasjon, varme og sanitet.",
+        "verktoy": "Måleinstrumenter, loddeutstyr, blikkenslagersaks.",
+        "utdanning": "📜 Vg1 Bygg -> Vg2 Klima, energi og miljøteknikk -> Lærlingid.",
+        "videre": "🎓 KEM-ingeniør, fagskole eller energi-spesialisering.",
+        "motivasjon": "🌍 Vil du ha en nøkkelrolle i det grønne skiftet? Her jobber du med teknologien som redder klimaet!",
+        "quiz": ("Hvorfor isolerer vi bygg?", ["Spare energi", "For tyngden"], "Spare energi")
     },
     "Overflateteknikk": {
-        "info": "🎨 **Hva lærer man?** Du gir byggene sjel! Du lærer å beskytte materialer og skape vakre rom med maling, tapet og gulv.",
-        "verktoy": "🖌️ Helsparklingsutstyr, sprøytemaler, avanserte gulvslipere og fargemålere.",
-        "utdanning": "📜 Vg1 Bygg- og anleggsteknikk -> Vg2 Overflateteknikk -> Lærlingid.",
-        "videre": "🎓 Mesterbrev (Malermester), interiørdesign eller fargekonsulent.",
-        "motivasjon": "🌈 Er du kreativ og har øye for detaljer? Her er det du som setter den siste finishen som kunden faktisk ser og tar på hver dag!",
-        "quiz": ("Hvorfor sparkle skjøter på gips?", ["Få slett overflate", "Lime platene"], "Få slett overflate")
+        "beskrivelse": "🎨 Beskytter og dekorerer bygg utvendig og innvendig. 🖌️ Maling, tapet og gulvlegging.",
+        "verktoy": "Sparkel, pensler, slipemaskin, malerulle.",
+        "utdanning": "📜 Vg1 Bygg -> Vg2 Overflateteknikk -> Lærlingid.",
+        "videre": "🎓 Mesterbrev, interiørdesign eller fargekonsulent.",
+        "motivasjon": "🌈 Er du kreativ? Her setter du den siste finishen som kunden faktisk ser og tar på hver dag!",
+        "quiz": ("Hva gjøres før maling?", ["Vaske og fjerne støv", "Male rett på"], "Vaske og fjerne støv")
     },
     "Rørlegger": {
-        "info": "🚿 **Hva lærer man?** Vann er liv. Du lærer å installere kompliserte systemer for sanitær, varme og brannslokking.",
-        "verktoy": "🛠️ Rørkuttere, trykktestingsutstyr, gjengeverktøy og varmekamera.",
-        "utdanning": "📜 Vg1 Bygg- og anleggsteknikk -> Vg2 Rørlegger -> Lærlingid.",
-        "videre": "🎓 Fagskole (VVS), mesterbrev eller rørleggeringeniør.",
-        "motivasjon": "💧 Ingen bygg fungerer uten rørleggeren. Vil du ha en sikker jobb med varierte utfordringer i alt fra bad til storindustri?",
-        "quiz": ("Hva gjør en vannlås?", ["Hindrer kloakklukt", "Renser vann"], "Hindrer kloakklukt")
+        "beskrivelse": "🚿 Installerer vann, varme og avløpssystemer. 🛠️ Viktig rolle i boliger og industri.",
+        "verktoy": "Rørkutter, rørnøkkel, trykkpumpe.",
+        "utdanning": "📜 Vg1 Bygg -> Vg2 Rørlegger -> Lærlingid.",
+        "videre": "🎓 Fagskole (VVS), mesterbrev eller ingeniør.",
+        "motivasjon": "💧 Ingen bygg fungerer uten rørleggeren. Vil du ha en sikker jobb med varierte utfordringer?",
+        "quiz": ("Hva gjør en vannlås?", ["Hindre kloakklukt", "Rense vann"], "Hindre kloakklukt")
     },
     "Treteknikk": {
-        "info": "🏭 **Hva lærer man?** Du lærer moderne industriell produksjon av treelementer. Her møtes tradisjonelt treverk og høyteknologi.",
-        "verktoy": "⚙️ CNC-maskiner, automatiske sager, limpresser og tegneprogrammer.",
-        "utdanning": "📜 Vg1 Bygg- og anleggsteknikk -> Vg2 Treteknikk -> Lærlingid.",
-        "videre": "🎓 Fagskole (treteknikk), produksjonsledelse eller ingeniør.",
-        "motivasjon": "🌲 Liker du tre som materiale, men trives best med maskiner og fabrikkdrift? Her skaper du fremtidens bærekraftige byggeklosser!",
-        "quiz": ("Hva er limtre?", ["Laminerte trelag for styrke", "Papir"], "Laminerte trelag for styrke")
+        "beskrivelse": "🏭 Industriell produksjon med tre som råstoff. ⚙️ Høyteknologisk produksjon av takstoler, vinduer og dører.",
+        "verktoy": "CNC-maskiner, automatiske sager, limpresser.",
+        "utdanning": "📜 Vg1 Bygg -> Vg2 Treteknikk -> Lærlingid.",
+        "videre": "🎓 Fagskole, produksjonsledelse eller ingeniør.",
+        "motivasjon": "🌲 Trives du best med maskiner og fabrikkdrift? Her skaper du fremtidens bærekraftige byggeklosser!",
+        "quiz": ("Hvilken tresort brukes mest?", ["Gran", "Eik"], "Gran")
     },
     "Tømrer": {
-        "info": "🏠 **Hva lærer man?** Du er selve ryggraden i byggeprosjektet. Du lærer å bygge alt fra reisverk til detaljert listverk i tre.",
-        "verktoy": "🔨 Hammer, sag, kappsag, laser, drill, vinkel og spikerpistol.",
-        "utdanning": "📜 Vg1 Bygg- og anleggsteknikk -> Vg2 Tømrer -> Lærlingid.",
-        "videre": "🎓 Mesterbrev (Tømrermester), fagskole (bygg) eller arkitekt.",
-        "motivasjon": "🔨 Er du nevenyttig og liker å se et hus reise seg fra grunnen? Som tømrer skaper du trygge hjem for folk og får jobbe med hendene hver dag!",
-        "quiz": ("Hva er standard c/c på stendere?", ["60 cm", "20 cm"], "60 cm")
+        "beskrivelse": "🏠 Oppføring av trebygninger fra reisverk til ferdig hus. 🔨 Den største faggruppen i bygg.",
+        "verktoy": "Hammer, sag, kappsag, laser, drill, vinkel.",
+        "utdanning": "📜 Vg1 Bygg -> Vg2 Tømrer -> Lærlingid.",
+        "videre": "🎓 Mesterbrev, fagskole eller arkitekt.",
+        "motivasjon": "🔨 Liker du å se et hus reise seg fra grunnen? Som tømrer skaper du trygge hjem for folk!",
+        "quiz": ("Hva er standard c/c?", ["60 cm", "100 cm"], "60 cm")
     },
     "Arbeidsmiljø og dokumentasjon": {
-        "info": "🛡️ **Hva lærer man?** Du lærer hvordan man leder en trygg byggeplass. HMS og dokumentasjon er det som skiller amatøren fra den profesjonelle.",
-        "verktoy": "📝 Sjekklister, digitale loggsystemer, SJA-verktøy og verneutstyr.",
-        "utdanning": "🛡️ Integrert i alle byggfag (HMS-kort/Sertifisering).",
+        "beskrivelse": "🛡️ Sikkerhet og kvalitet. 📋 Planlegge arbeidet for å unngå ulykker.",
+        "verktoy": "SJA-skjemaer, sjekklister, verneutstyr.",
+        "utdanning": "🛡️ Integrert i alle byggfag (HMS).",
         "videre": "🎓 HMS-leder, prosjektleder eller kvalitetssikrer.",
-        "motivasjon": "⚠️ Vil du ha ansvar for at alle kommer trygt hjem fra jobb? En god leder på byggeplassen er gull verdt for alle fagene!",
-        "quiz": ("Hva står SJA for?", ["Sikker jobb-analyse", "Snekker-avtale"], "Sikker jobb-analyse")
+        "motivasjon": "⚠️ Vil du ha ansvar for at alle kommer trygt hjem? En god leder på plassen er gull verdt!",
+        "quiz": ("Hva står HMS for?", ["Helse, Miljø og Sikkerhet", "Hele Min Snekker"], "Helse, Miljø og Sikkerhet")
     },
     "Yrkesfaglig fordypning": {
-        "info": "🤝 **Hva lærer man?** Dette er din 'testkjøring' av arbeidslivet. Du lærer å samarbeide med profesjonelle og finne din plass.",
-        "verktoy": "👷 Eget verneutstyr, loggbok og gode spørsmål til veilederen.",
-        "utdanning": "📈 En del av pensum som fører rett til læreplass.",
+        "beskrivelse": "🏢 Praksisperiode i bedrift. 🤝 Din sjanse til å få lærlingplass.",
+        "verktoy": "Eget verneutstyr, loggbok og interesse.",
+        "utdanning": "📈 En del av pensum på Vg1 og Vg2.",
         "videre": "🚀 Veien til fast jobb starter her.",
-        "motivasjon": "🌟 Er du usikker? Bruk YFF til å teste flere fag! Dette er din sjanse til å 'smake' på yrket før du bestemmer deg for resten av livet.",
-        "quiz": ("Viktigst i praksis?", ["Oppmøte og interesse", "Ny mobil"], "Oppmøte og interesse")
+        "motivasjon": "🌟 Er du usikker? Bruk YFF til å teste flere fag før du bestemmer deg!",
+        "quiz": ("Viktigst i praksis?", ["Oppmøte og interesse", "Kunne alt"], "Oppmøte og interesse")
     }
 }
 
@@ -153,22 +158,21 @@ tab_info, tab_matte, tab_quiz, tab_leader = st.tabs(["📚 Infokanal", "📐 Pra
 
 with tab_info:
     st.header("Informasjon om programfagene")
-    sel_fag = st.selectbox("Velg fag for å utforske:", list(data_db.keys()))
+    sel_fag = st.selectbox("Velg fagområde:", list(data_db.keys()))
+    f = data_db[sel_fag]
     st.subheader(f"📍 {sel_fag}")
-    
-    st.markdown(data_db[sel_fag]["info"])
+    st.markdown(f"**Hva lærer man?**\n\n{f['beskrivelse']}")
     
     col1, col2 = st.columns(2)
     with col1:
         st.markdown("### 🛠️ Viktige verktøy")
-        st.write(data_db[sel_fag]["verktoy"])
+        st.write(f["verktoy"])
     with col2:
         st.markdown("### 🎓 Utdanningsløp")
-        st.write(data_db[sel_fag]["utdanning"])
+        st.write(f["utdanning"])
     
-    st.success(f"**🚀 Videreutdanning:** {data_db[sel_fag]['videre']}")
-    
-    st.info(f"💡 **Til deg som er usikker:** {data_db[sel_fag]['motivasjon']}")
+    st.success(f"**🚀 Videreutdanning:** {f['videre']}")
+    st.info(f"💡 **Til deg som er usikker:** {f['motivasjon']}")
 
 with tab_matte:
     st.header("📐 Praktisk matematikk")
@@ -176,51 +180,51 @@ with tab_matte:
     
     if m_kat == "Omkrets":
         st.write("### 📏 Omkrets (Lengden rundt)")
-        st.write("Bruk dette når du skal beregne lister langs gulvet eller gjerder.")
-        st.latex(r"Formel: L + B + L + B")
-        st.write("**Oppgave:** Et rom er 5m x 4m. Hvor mange meter list trenger du?")
-        ans1 = st.radio("Svar:", ["9m", "18m", "20m"], index=None, key="m1")
-        if st.button("Sjekk 1"):
-            if ans1 == "18m": st.success("Riktig!"); st.session_state.points += 5
+        st.write("Omkretsen er summen av alle sidene. Brukes til lister, gjerder eller grunnmursplast.")
+        st.latex(r"Omkrets = S_1 + S_2 + S_3 + S_4")
+        st.write("**Oppgave:** Et rom er 4m langt og 3m bredt. Hvor mange meter list trenger du?")
+        ans1 = st.radio("Svar:", ["7m", "14m", "12m"], index=None, key="m1")
+        if st.button("Sjekk Omkrets"):
+            if ans1 == "14m":
+                st.success("Riktig! (4+3+4+3)"); st.session_state.points += 5
 
     elif m_kat == "Areal":
         st.write("### ⬛ Areal (Overflaten)")
-        st.write("Bruk dette for gulv, maling eller steinlegging.")
-        st.latex(r"Formel: L \times B = m^2")
-        
-
-[Image of area calculation for a rectangle]
-
-        st.write("**Oppgave:** Du skal legge gulv i en bod på 2,5m x 3m. Hvor mange m²?")
-        ans2 = st.radio("Svar:", ["5,5 m²", "7,5 m²", "10 m²"], index=None, key="m2")
-        if st.button("Sjekk 2"):
-            if ans2 == "7,5 m²": st.success("Riktig!"); st.session_state.points += 5
+        st.write("Areal forteller hvor stor en flate er ($m^2$). Brukes til gulv, maling eller gipsplater.")
+        st.latex(r"Areal = L \times B")
+        st.write("**Oppgave:** Du skal legge gulv i en bod på 2,5m x 4m. Hvor mange m²?")
+        ans2 = st.radio("Svar:", ["6,5 m²", "10 m²", "8 m²"], index=None, key="m2")
+        if st.button("Sjekk Areal"):
+            if ans2 == "10 m²":
+                st.success("Helt rett! 2,5 * 4 = 10 m²"); st.session_state.points += 5
 
     elif m_kat == "Prosent & Svinn":
         st.write("### 📈 Prosent og Svinn")
-        st.write("Vi legger til 10% svinn ved å gange behovet med 1,10.")
-        st.write("**Oppgave:** Du trenger 80m kledning. Hvor mye bestiller du med 10% svinn?")
-        ans3 = st.radio("Svar:", ["88m", "80,1m"], index=None, key="m3")
-        if st.button("Sjekk 3"):
-            if ans3 == "88m": st.success("Riktig!"); st.session_state.points += 10
+        st.write("Vi legger til svinn (ofte 10%) fordi noe kappes bort. Gange med 1,10.")
+        st.write("**Oppgave:** Du trenger 50 meter kledning. Med 10% svinn, hvor mye bestiller du?")
+        ans3 = st.radio("Svar:", ["55m", "50,1m"], index=None, key="m3")
+        if st.button("Sjekk Svinn"):
+            if ans3 == "55m":
+                st.success("Riktig! 50 + 5 = 55m."); st.session_state.points += 10
 
     elif m_kat == "Målestokk":
         st.write("### 🗺️ Målestokk")
-        st.write("Målestokk 1:50 betyr at 1cm på tegningen er 50cm i virkeligheten.")
-        st.write("**Oppgave:** På en tegning i 1:50 måler du 10cm. Hvor langt er det i virkeligheten?")
+        st.write("Målestokk 1:50 betyr at virkeligheten er 50 ganger større enn tegningen.")
+        st.write("**Oppgave:** På tegning (1:50) måler du 10cm. Hvor langt er det i virkeligheten?")
         ans4 = st.radio("Svar:", ["5 meter", "50 cm"], index=None, key="m4")
-        if st.button("Sjekk 4"):
-            if ans4 == "5 meter": st.success("Riktig! 10 * 50 = 500cm = 5m"); st.session_state.points += 10
+        if st.button("Sjekk Målestokk"):
+            if ans4 == "5 meter":
+                st.success("Riktig! 10cm * 50 = 5m."); st.session_state.points += 10
 
     elif m_kat == "Vg2: Vinkler":
         st.write("### 📐 Vinkler (3-4-5 regelen)")
         st.write("For å sjekke 90 grader. Hvis sidene er 3 og 4, må diagonalen være 5.")
         st.latex(r"a^2 + b^2 = c^2")
-        
         st.write("**Oppgave:** Sidene er 60cm og 80cm. Hva er diagonalen i vinkel?")
         ans5 = st.radio("Svar:", ["100cm", "140cm"], index=None, key="m5")
-        if st.button("Sjekk 5"):
-            if ans5 == "100cm": st.success("Vinkelen er 90 grader!"); st.session_state.points += 20; st.balloons()
+        if st.button("Sjekk Vinkel"):
+            if ans5 == "100cm":
+                st.success("Vinkelen er 90 grader!"); st.session_state.points += 20; st.balloons()
 
 with tab_quiz:
     q_sel = st.selectbox("Velg quiz:", list(data_db.keys()), key="q_box")
@@ -230,6 +234,8 @@ with tab_quiz:
     if st.button("Sjekk Quiz"):
         if res == svar:
             st.success("Riktig!"); st.session_state.points += 20; st.balloons(); st.rerun()
+        else:
+            st.error("Feil svar, prøv igjen!")
 
 with tab_leader:
-    st.table(pd.DataFrame({"Navn": [st.session_state.user_name, "Lærer"], "Poeng": [st.session_state.points, 400]}))
+    st.table(pd.DataFrame({"Navn": [st.session_state.user_name, "Lærer"], "Poeng": [st.session_state.points, 400]}).sort_values("Poeng", ascending=False))
