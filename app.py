@@ -5,10 +5,13 @@ import pandas as pd
 # 1. Konfigurasjon og Visuelt Design
 st.set_page_config(page_title="Byggfagtreneren", page_icon="🏗️", layout="centered")
 
+# CSS for hvit skrift, mørk bakgrunn og gul "Spør verksmesteren"-knapp
 st.markdown("""
     <style>
     .stApp { background-color: #121212; }
     h1, h2, h3, p, span, label, .stMarkdown { color: #FFFFFF !important; }
+    
+    /* Gule hovedknapper */
     .stButton>button { 
         border-radius: 12px; 
         background-color: #FFB300; 
@@ -16,12 +19,16 @@ st.markdown("""
         font-weight: bold;
         width: 100%;
     }
+
+    /* "Spør verksmesteren"-knappen: Gult felt, SORT tekst (Alltid synlig) */
     div[data-testid="stPopover"] > button {
         background-color: #FFB300 !important;
         color: #000000 !important;
         font-weight: bold !important;
         border: 2px solid #FFFFFF !important;
     }
+    
+    .stSelectbox label { color: #FFB300 !important; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -55,9 +62,8 @@ with col2:
         user_prompt = st.chat_input("Hva lurer du på?")
         
         if user_prompt:
-            # Sjekk om hemmeligheter er satt opp
             if "OPENAI_API_KEY" not in st.secrets:
-                st.error("Feil: API-nøkkel mangler i Streamlit Secrets!")
+                st.error("API-nøkkel mangler i Secrets!")
             else:
                 try:
                     client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
@@ -71,109 +77,117 @@ with col2:
                     ans = response.choices[0].message.content
                     st.session_state.messages.append({"role": "assistant", "content": ans})
                 except Exception as e:
-                    st.error(f"AI-feil: {str(e)}")
+                    st.error(f"AI-feil: Sjekk API-nøkkelen din.")
 
         for m in st.session_state.messages[-3:]:
             st.write(f"🗨️ {m['content']}")
 
 st.divider()
 
-# --- DATABASE (INFO & QUIZ) ---
+# --- DATABASE FOR ALLE 10 TEMAER (INFO & QUIZ) ---
+# Basert på Tittel.docx og kompetansemål-dokumenter 
 data_db = {
     "Anleggsgartner": {
-        "beskrivelse": "Bygger og vedlikeholder uterom, parker og hager.",
-        "verktoy": "Murersnor, laser, steinkutter.",
-        "utdanning": "Vg1 Bygg -> Vg2 Anleggsgartner -> Lærling.",
+        "beskrivelse": "Bygger og vedlikeholder uterom, parker og hager. Inkluderer arbeid med stein, betong og planter.",
+        "verktoy": "Murersnor, laser, steinkutter, vibrasjonsplate.",
+        "utdanning": "Vg1 Bygg -> Vg2 Anleggsgartner -> 2 år lærlingid (Svennebrev).",
         "quiz": ("Hva brukes en murersnor til?", ["Lage rette linjer", "Måle fukt", "Kutte stein"], "Lage rette linjer")
     },
     "Anleggsteknikk": {
-        "beskrivelse": "Graving, transport og vedlikehold av infrastruktur.",
-        "verktoy": "Gravemaskin, hjullaster, dumper.",
-        "utdanning": "Vg1 Bygg -> Vg2 Anleggsteknikk -> Lærling.",
-        "quiz": ("Hva er påbudt i grøft?", ["Hjelm og vernesko", "Hørselsvern", "Ingenting"], "Hjelm og vernesko")
+        "beskrivelse": "Graving, transport og vedlikehold av infrastruktur som veier og tunneler.",
+        "verktoy": "Gravemaskin, hjullaster, dumper, nivelleringskikkert.",
+        "utdanning": "Vg1 Bygg -> Vg2 Anleggsteknikk -> Lærling i maskinførerfaget.",
+        "quiz": ("Hva er påbudt verneutstyr i grøft?", ["Hjelm og vernesko", "Hørselsvern", "Ingenting"], "Hjelm og vernesko")
     },
     "Betong og mur": {
-        "beskrivelse": "Konstruksjon i betong, tegl og naturstein.",
-        "verktoy": "Forskalingsutstyr, murerkjei.",
-        "utdanning": "Vg1 Bygg -> Vg2 Betong og mur -> Lærling.",
-        "quiz": ("Hvorfor brukes armering?", ["Øke strekkfasthet", "Gjøre lettere", "Pynt"], "Øke strekkfasthet")
+        "beskrivelse": "Konstruksjon av grunnmurer, vegger og trapper i betong, tegl og naturstein.",
+        "verktoy": "Forskalingsutstyr, blandemaskin, vater, murerkjei.",
+        "utdanning": "Vg1 Bygg -> Vg2 Betong og mur -> Lærlingid.",
+        "quiz": ("Hvorfor brukes armeringsstål i betong?", ["Øke strekkfasthet", "Gjøre den lettere", "Pynt"], "Øke strekkfasthet")
     },
     "Klima, energi og miljøteknikk": {
-        "beskrivelse": "Inneklima og energibruk i bygg.",
-        "verktoy": "Måleinstrumenter, isolasjonsverktøy.",
-        "utdanning": "Vg1 Bygg -> Vg2 Klima/Energi -> Lærling.",
-        "quiz": ("Hvorfor isolere rør?", ["Spare energi", "Pynt", "Øke trykk"], "Spare energi")
+        "beskrivelse": "Tekniske installasjoner som sikrer godt inneklima og lavt energibruk i bygg.",
+        "verktoy": "Måleinstrumenter for trykk, isolasjonsverktøy, loddeutstyr.",
+        "utdanning": "Vg1 Bygg -> Vg2 Klima, energi og miljøteknikk -> Lærlingid.",
+        "quiz": ("Hvorfor isolerer vi bygninger?", ["For å spare energi", "For utseende", "For tyngden"], "For å spare energi")
     },
     "Overflateteknikk": {
-        "beskrivelse": "Maling, tapetsering og gulvlegging.",
-        "verktoy": "Sparkel, pensler, slipemaskin.",
-        "utdanning": "Vg1 Bygg -> Vg2 Overflate -> Lærling.",
-        "quiz": ("Hva gjøres før maling?", ["Sparkle og slipe", "Male rett på", "Vaske med såpe"], "Sparkle og slipe")
+        "beskrivelse": "Beskyttelse og dekor av overflater gjennom maling, tapetsering og gulvlegging.",
+        "verktoy": "Sparkel, pensler, slipemaskin, malerulle.",
+        "utdanning": "Vg1 Bygg -> Vg2 Overflateteknikk -> Lærlingid.",
+        "quiz": ("Hva må gjøres før maling?", ["Vaske og fjerne støv", "Male rett på", "Bruke vann"], "Vaske og fjerne støv")
     },
     "Rørlegger": {
-        "beskrivelse": "Vann, varme og avløpssystemer.",
-        "verktoy": "Rørkutter, rørnøkkel, trykkpumpe.",
-        "utdanning": "Vg1 Bygg -> Vg2 Rørlegger -> Lærling.",
+        "beskrivelse": "Installasjon av vann, varme og avløpssystemer i alle typer bygg.",
+        "verktoy": "Rørkutter, rørnøkkel, trykktestingspumpe.",
+        "utdanning": "Vg1 Bygg -> Vg2 Rørlegger -> Lærlingid.",
         "quiz": ("Hva gjør en vannlås?", ["Hindre kloakklukt", "Rense vannet", "Øke fart"], "Hindre kloakklukt")
     },
     "Treteknikk": {
-        "beskrivelse": "Industriell bearbeiding av treverk.",
-        "verktoy": "CNC-maskiner, høvel, sag.",
-        "utdanning": "Vg1 Bygg -> Vg2 Treteknikk -> Lærling.",
-        "quiz": ("Hvilken tresort brukes mest?", ["Gran", "Eik", "Furu"], "Gran")
+        "beskrivelse": "Maskinell bearbeiding av treverk til elementer som dører, vinduer og limtre.",
+        "verktoy": "CNC-maskiner, høvel, sag, fres.",
+        "utdanning": "Vg1 Bygg -> Vg2 Treteknikk -> Lærlingid.",
+        "quiz": ("Hvilken tresort brukes mest til reisverk?", ["Gran", "Eik", "Furu"], "Gran")
     },
     "Tømrer": {
-        "beskrivelse": "Oppføring av trebygninger.",
-        "verktoy": "Hammer, sag, laser, drill.",
-        "utdanning": "Vg1 Bygg -> Vg2 Tømrer -> Lærling.",
-        "quiz": ("Hva er standard c/c?", ["600 mm", "300 mm", "1200 mm"], "600 mm")
+        "beskrivelse": "Oppføring og rehabilitering av trebygninger, inkludert vegger, tak og gulv.",
+        "verktoy": "Hammer, sag, laser, vinkel, spikerpistol.",
+        "utdanning": "Vg1 Bygg -> Vg2 Tømrer -> Lærlingid.",
+        "quiz": ("Hva er standard c/c på stendere?", ["600 mm", "300 mm", "1200 mm"], "600 mm")
     },
     "Arbeidsmiljø og dokumentasjon": {
-        "beskrivelse": "Systematisk arbeid med HMS.",
-        "verktoy": "SJA, sjekklister, verneplaner.",
-        "utdanning": "Integrert i alle programfag.",
-        "quiz": ("Hva står SJA for?", ["Sikker jobb-analyse", "Snekker-avtale", "Sikker jord"], "Sikker jobb-analyse")
+        "beskrivelse": "Fokus på HMS, sjekklister og dokumentasjon av eget arbeid.",
+        "verktoy": "SJA-skjemaer, verneplaner, sjekklister.",
+        "utdanning": "Gjennomgående tema i alle programfag.",
+        "quiz": ("Hva står HMS for?", ["Helse, Miljø og Sikkerhet", "Husk Mye Sagmugg", "Hjelp Med Snekring"], "Helse, Miljø og Sikkerhet")
     },
     "Yrkesfaglig fordypning": {
-        "beskrivelse": "Praktisk trening ute i bedrift.",
+        "beskrivelse": "Praktisk trening i bedrift for å bli kjent med yrket.",
         "verktoy": "Varierer etter fagfelt.",
-        "utdanning": "Vg1 og Vg2.",
+        "utdanning": "En del av Vg1 og Vg2 læreplanen.",
         "quiz": ("Viktigst i praksis?", ["Møte presis", "Dyrt verktøy", "Kunne alt"], "Møte presis")
     }
 }
 
-# --- FANER ---
+# --- FANER (INFO FØRST, SÅ QUIZ) ---
 tab_info, tab_quiz, tab_leader = st.tabs(["📚 Infokanal", "🎮 Quiz", "🏆 Leaderboard"])
 
 with tab_info:
-    st.header("Informasjon om programfagene")
+    st.header("Informasjon om programområdene")
     selected_fag = st.selectbox("Velg fagområde:", list(data_db.keys()), key="info_box")
+    
     if selected_fag in data_db:
         f = data_db[selected_fag]
         st.subheader(f"📍 {selected_fag}")
+        
         col_desc, col_tool = st.columns(2)
         with col_desc:
             st.markdown("### 📋 Arbeidsområder")
             st.write(f["beskrivelse"])
         with col_tool:
-            st.markdown("### 🛠️ Verktøy")
+            st.markdown("### 🛠️ Viktig Verktøy")
             st.write(f["verktoy"])
+            
         st.markdown("### 🎓 Utdanning")
         st.info(f["utdanning"])
 
 with tab_quiz:
     st.header("Tren på kompetansemålene")
     valgt_quiz = st.selectbox("Hva vil du trene på?", list(data_db.keys()), key="quiz_box")
+    
     if valgt_quiz in data_db:
         spm, valg, svar = data_db[valgt_quiz]["quiz"]
         st.write(f"### {spm}")
         bruker_svar = st.radio("Velg svar:", valg, index=None, key=f"q_{valgt_quiz}")
+        
         if st.button("Sjekk svar"):
             if bruker_svar == svar:
                 st.success("RIKTIG! +20 poeng")
                 st.session_state.points += 20
                 st.balloons()
                 st.rerun()
+            elif bruker_svar is None:
+                st.warning("Velg et svar først.")
             else:
                 st.error("Feil svar. Prøv igjen!")
 
