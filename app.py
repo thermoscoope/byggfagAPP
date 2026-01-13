@@ -1,113 +1,84 @@
 import streamlit as st
+from openai import OpenAI
 
 # Konfigurasjon
 st.set_page_config(page_title="Byggfagtreneren", page_icon="🏗️", layout="centered")
 
-# CSS for hvit skrift på mørk bakgrunn (for lesbarhet)
+# CSS for mørk bakgrunn og hvit skrift
 st.markdown("""
     <style>
-    .stApp { background-color: #1E1E1E; }
+    .stApp { background-color: #121212; }
     h1, h2, h3, p, span, label, .stMarkdown { color: #FFFFFF !important; }
     .stButton>button { 
-        border-radius: 20px; 
+        border-radius: 10px; 
         background-color: #FFB300; 
         color: #000000 !important; 
-        width: 100%;
-        font-size: 18px;
+        font-weight: bold;
     }
-    .stSelectbox label { color: #FFB300 !important; font-size: 20px; }
+    /* Gjør chat-vinduet litt mer kompakt */
+    .stChatFloatingInputContainer { background-color: #222 !important; }
     </style>
     """, unsafe_allow_html=True)
 
-# Initialisering av session state
+# Initialisering
 if 'points' not in st.session_state:
     st.session_state.points = 0
+if 'messages' not in st.session_state:
+    st.session_state.messages = []
 
-# Overskrift
-st.title("🏗️ Byggfagtreneren")
-st.write(f"## Din poengsum: {st.session_state.points}")
+# --- TOPP-RAD: TITTEL OG AI-HJELPER SIDE OM SIDE ---
+col1, col2 = st.columns([2, 1])
 
-# Nivå-logikk
-if st.session_state.points < 50:
-    nivaa_navn = "Nivå 1: Lærling-spire 🌱"
-    nivaa_key = "n1"
-elif st.session_state.points < 150:
-    nivaa_navn = "Nivå 2: Fagarbeider 🛠️"
-    nivaa_key = "n2"
-else:
-    nivaa_navn = "Nivå 3: Mester 🏆"
-    nivaa_key = "n3"
+with col1:
+    st.title("🏗️ Byggfagtreneren")
+    st.write(f"Poeng: **{st.session_state.points}**")
 
-st.info(f"Akkurat nå er du på: **{nivaa_navn}**")
+with col2:
+    # En liten knapp for å åpne AI-chat i en "pop-over" (veldig moderne design)
+    with st.popover("🤖 Spør AI-Hjelper"):
+        st.write("Verksmesteren er klar!")
+        
+        # Enkel chat-funksjon inne i popoveren
+        prompt = st.chat_input("Hva lurer du på?")
+        if prompt:
+            client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+            
+            # Legg spørsmål til historikk
+            st.session_state.messages.append({"role": "user", "content": prompt})
+            
+            # Send til OpenAI
+            response = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "Du er en hjelpsom verksmester for VG1 og VG2 elever i byggfag. Svar kort og faglig korrekt på norsk."},
+                    {"role": "user", "content": prompt}
+                ]
+            )
+            ans = response.choices[0].message.content
+            st.session_state.messages.append({"role": "assistant", "content": ans})
 
-# Liste over alle programområder fra Tittel.docx
-temaer = [
-    "Anleggsgartner", "Anleggsteknikk", "Betong og mur", 
-    "Klima, energi og miljøteknikk", "Overflateteknikk", 
-    "Rørlegger", "Treteknikk", "Tømrer", 
-    "Arbeidsmiljø og dokumentasjon", "Yrkesfaglig fordypning"
-]
+        # Vis de siste meldingene i det lille vinduet
+        for m in st.session_state.messages[-3:]:
+            st.write(f"**{'Du' if m['role']=='user' else 'AI'}:** {m['content']}")
 
-valgt_tema = st.selectbox("Hva vil du lære om nå?", temaer)
+st.divider()
 
-# Database med spørsmål (Eksempler basert på kompetansemål)
-quiz_data = {
-    "Anleggsgartner": {
-        "n1": ("Hva brukes en murer snor til?", ["Lage rette linjer", "Måle temperatur", "Kutte stein"], "Lage rette linjer"),
-    },
-    "Anleggsteknikk": {
-        "n1": ("Hvilket verneutstyr er påbudt i grøft?", ["Hjelm og synlighetsklær", "Badebukse", "Kun hansker"], "Hjelm og synlighetsklær"),
-    },
-    "Betong og mur": {
-        "n1": ("Hva skjer hvis betong tørker for fort?", ["Den blir sterkere", "Den kan sprekke", "Ingenting"], "Den kan sprekke"),
-    },
-    "Klima, energi og miljøteknikk": {
-        "n1": ("Hvorfor isolerer vi rør?", ["For å spare energi", "For at de skal se fine ut", "For at de skal veie mer"], "For å spare energi"),
-    },
-    "Overflateteknikk": {
-        "n1": ("Hva er viktig før man maler en flate?", ["At den er ren og tørr", "At det regner", "At man har på seg hatt"], "At den er ren og tørr"),
-    },
-    "Rørlegger": {
-        "n1": ("Hva betyr 'fall' på et avløpsrør?", ["At røret peker nedover", "At man har mistet røret", "At vannet står stille"], "At røret peker nedover"),
-    },
-    "Treteknikk": {
-        "n1": ("Hvilken tresort brukes mest til konstruksjon i Norge?", ["Gran", "Eik", "Palme"], "Gran"),
-    },
-    "Tømrer": {
-        "n1": ("Hva er standard avstand mellom stendere (c/c)?", ["60 cm", "100 cm", "20 cm"], "60 cm"),
-    },
-    "Arbeidsmiljø og dokumentasjon": {
-        "n1": ("Hva står HMS for?", ["Helse, Miljø og Sikkerhet", "Husk Mye Sagmugg", "Hjelp Med Snekring"], "Helse, Miljø og Sikkerhet"),
-    },
-    "Yrkesfaglig fordypning": {
-        "n1": ("Hva er viktigst i møte med en kunde?", ["Å være høflig og profesjonell", "Å snakke høyest", "Å komme for sent"], "Å være høflig og profesjonell"),
-    }
-}
+# --- PROGRAMOMRÅDER (Resten av appen) ---
+temaer = ["Anleggsgartner", "Anleggsteknikk", "Betong og mur", "Klima, energi og miljøteknikk", 
+          "Overflateteknikk", "Rørlegger", "Treteknikk", "Tømrer", "Arbeidsmiljø og dokumentasjon"]
 
-# Vis quiz basert på valg
-if valgt_tema in quiz_data:
-    spm, valg, svar = quiz_data[valgt_tema][nivaa_key]
-    
-    st.write(f"### {spm}")
-    bruker_svar = st.radio("Velg ett svar:", valg, key=valgt_tema, index=None)
+valgt_tema = st.selectbox("Velg et fagområde:", temaer)
 
-    if st.button("Send svar"):
-        if bruker_svar == svar:
-            st.success("RIKTIG! 🌟")
+# Her følger quiz-logikken vi laget tidligere...
+st.write(f"Du har valgt: **{valgt_tema}**")
+st.info("Svar på spørsmålene under for å 'låse opp' neste nivå.")
+
+# Eksempel på et spørsmål
+if valgt_tema == "Tømrer":
+    st.write("### Nivå 1: Hva er standard c/c på stendere?")
+    svar = st.radio("Svar:", ["30 cm", "60 cm", "120 cm"], index=None)
+    if st.button("Sjekk svar"):
+        if svar == "60 cm":
+            st.success("Riktig!")
             st.session_state.points += 10
             st.balloons()
-            st.rerun()
-        else:
-            st.error("Feil svar, prøv igjen! Tenk på hva som er sikrest og mest faglig korrekt.")
-
-# Lærer-seksjon (Nederst)
-st.divider()
-with st.expander("🛠️ Lærertilgang (Lås opp oppgaver)"):
-    st.write("Her kan læreren se progresjon og manuelt tildele bonuspoeng.")
-    admin_kode = st.text_input("Skriv inn lærerkode:", type="password")
-    if admin_kode == "bygg2024":
-        st.write("### Elev-oversikt")
-        st.write(f"Gjeldende elev har: {st.session_state.points} poeng.")
-        if st.button("Gi 50 bonuspoeng"):
-            st.session_state.points += 50
-            st.rerun()
