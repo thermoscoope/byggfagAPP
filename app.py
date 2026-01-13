@@ -1,84 +1,86 @@
 import streamlit as st
 from openai import OpenAI
 
-# Konfigurasjon
+# 1. Konfigurasjon og Design
 st.set_page_config(page_title="Byggfagtreneren", page_icon="🏗️", layout="centered")
 
-# CSS for mørk bakgrunn og hvit skrift
 st.markdown("""
     <style>
     .stApp { background-color: #121212; }
     h1, h2, h3, p, span, label, .stMarkdown { color: #FFFFFF !important; }
     .stButton>button { 
-        border-radius: 10px; 
+        border-radius: 12px; 
         background-color: #FFB300; 
         color: #000000 !important; 
         font-weight: bold;
+        width: 100%;
     }
-    /* Gjør chat-vinduet litt mer kompakt */
-    .stChatFloatingInputContainer { background-color: #222 !important; }
+    /* Stil for radio-knapper så de synes godt */
+    .stRadio [data-testid="stMarkdownContainer"] { color: white !important; font-size: 18px; }
     </style>
     """, unsafe_allow_html=True)
 
-# Initialisering
+# 2. Initialisering av data
 if 'points' not in st.session_state:
     st.session_state.points = 0
 if 'messages' not in st.session_state:
     st.session_state.messages = []
 
-# --- TOPP-RAD: TITTEL OG AI-HJELPER SIDE OM SIDE ---
+# --- TOPP-RAD: Tittel og AI ved siden av hverandre ---
 col1, col2 = st.columns([2, 1])
 
 with col1:
     st.title("🏗️ Byggfagtreneren")
-    st.write(f"Poeng: **{st.session_state.points}**")
+    st.write(f"Poengsum: **{st.session_state.points}**")
 
 with col2:
-    # En liten knapp for å åpne AI-chat i en "pop-over" (veldig moderne design)
     with st.popover("🤖 Spør AI-Hjelper"):
-        st.write("Verksmesteren er klar!")
+        st.write("### Verksmesteren")
+        user_prompt = st.chat_input("Spør om byggfag...")
         
-        # Enkel chat-funksjon inne i popoveren
-        prompt = st.chat_input("Hva lurer du på?")
-        if prompt:
-            client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
-            
-            # Legg spørsmål til historikk
-            st.session_state.messages.append({"role": "user", "content": prompt})
-            
-            # Send til OpenAI
-            response = client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[
-                    {"role": "system", "content": "Du er en hjelpsom verksmester for VG1 og VG2 elever i byggfag. Svar kort og faglig korrekt på norsk."},
-                    {"role": "user", "content": prompt}
-                ]
-            )
-            ans = response.choices[0].message.content
-            st.session_state.messages.append({"role": "assistant", "content": ans})
+        if user_prompt:
+            try:
+                # Sjekker om nøkkelen finnes før vi kaller AI
+                if "OPENAI_API_KEY" in st.secrets:
+                    client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+                    response = client.chat.completions.create(
+                        model="gpt-3.5-turbo",
+                        messages=[
+                            {"role": "system", "content": "Du er en erfaren norsk verksmester. Svar kort og enkelt på byggfaglige spørsmål for VG1-VG3 elever."},
+                            {"role": "user", "content": user_prompt}
+                        ]
+                    )
+                    ans = response.choices[0].message.content
+                    st.session_state.messages.append({"role": "assistant", "content": ans})
+                else:
+                    st.error("API-nøkkel mangler i Settings -> Secrets!")
+            except Exception as e:
+                st.error(f"AI-feil: Legg inn API-nøkkel i Streamlit Secrets for å aktivere.")
 
-        # Vis de siste meldingene i det lille vinduet
         for m in st.session_state.messages[-3:]:
-            st.write(f"**{'Du' if m['role']=='user' else 'AI'}:** {m['content']}")
+            st.write(f"🗨️ {m['content']}")
 
 st.divider()
 
-# --- PROGRAMOMRÅDER (Resten av appen) ---
-temaer = ["Anleggsgartner", "Anleggsteknikk", "Betong og mur", "Klima, energi og miljøteknikk", 
-          "Overflateteknikk", "Rørlegger", "Treteknikk", "Tømrer", "Arbeidsmiljø og dokumentasjon"]
+# --- LOGIKK FOR NIVÅ ---
+if st.session_state.points < 100:
+    n_key = "n1"
+    status = "Lærling-spire 🌱"
+elif st.session_state.points < 300:
+    n_key = "n2"
+    status = "Fagarbeider 🛠️"
+else:
+    n_key = "n3"
+    status = "Mester 🏆"
 
-valgt_tema = st.selectbox("Velg et fagområde:", temaer)
+st.write(f"Din status: **{status}**")
 
-# Her følger quiz-logikken vi laget tidligere...
-st.write(f"Du har valgt: **{valgt_tema}**")
-st.info("Svar på spørsmålene under for å 'låse opp' neste nivå.")
-
-# Eksempel på et spørsmål
-if valgt_tema == "Tømrer":
-    st.write("### Nivå 1: Hva er standard c/c på stendere?")
-    svar = st.radio("Svar:", ["30 cm", "60 cm", "120 cm"], index=None)
-    if st.button("Sjekk svar"):
-        if svar == "60 cm":
-            st.success("Riktig!")
-            st.session_state.points += 10
-            st.balloons()
+# --- SPØRSMÅL-DATABASE ---
+quiz_db = {
+    "Tømrer": {
+        "n1": ("Hva er standard c/c på stendere?", ["30 cm", "60 cm", "120 cm"], "60 cm"),
+        "n2": ("Hva slags spiker brukes utendørs?", ["Varmforzinket", "Blank", "Kobber"], "Varmforzinket"),
+        "n3": ("Hva er viktigst ved dimensjonering av sperrer?", ["Snølast og spennvidde", "Fargen på treet", "Prisen"], "Snølast og spennvidde")
+    },
+    "Arbeidsmiljø og dokumentasjon": {
+        "n1": ("Hva står HMS for?", ["Helse, Miljø og Sikkerhet", "Husk Mye Sagmugg", "Hjelp Med Snekring"], "Helse, Miljø og Sikkerhet"),
