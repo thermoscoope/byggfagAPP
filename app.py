@@ -179,7 +179,7 @@ with tab_matte:
     m_kat = st.radio("Velg emne:", ["Omkrets", "Areal", "Prosent & Svinn", "Målestokk", "Vg2: Vinkler"], horizontal=True)
     
     if m_kat == "Omkrets":
-        st.write("### 📏 Omkrets (Lengden rundt)")
+        st.write("### 📏 Omkrets – hvor langt det er rundt")
         st.write("Omkretsen er summen av alle sidene. Brukes til lister, gjerder eller grunnmursplast.")
         st.latex(r"Omkrets = S_1 + S_2 + S_3 + S_4")
         st.write("**Oppgave:** Et rom er 4m langt og 3m bredt. Hvor mange meter list trenger du?")
@@ -189,7 +189,7 @@ with tab_matte:
                 st.success("Riktig! (4+3+4+3)"); st.session_state.points += 5
 
     elif m_kat == "Areal":
-        st.write("### ⬛ Areal (Overflaten)")
+        st.write("### ⬛ Areal – hvor mye plass noe tar ")
         st.write("Tenk deg at du skal legge gulv på et rom. Arealet sier hvor mange gulvplater som trengs. Enkelt forklart: Areal er hvor mye plass noe tar inni en form. Eksempel: Et teppe som er 4 meter langt og 3 meter bredt: 4 × 3 = 12 kvadratmeter. Det betyr at teppet dekker 12 ruter på 1 m × 1 m.")
         st.latex(r"Areal = L \times B")
         st.write("**Oppgave:** Du skal legge gulv i en bod på 2,5m x 4m. Hvor mange m²?")
@@ -198,9 +198,9 @@ with tab_matte:
             if ans2 == "10 m²":
                 st.success("Helt rett! 2,5 * 4 = 10 m²"); st.session_state.points += 5
 
-    elif m_kat == "Prosent & Svinn":
-        st.write("### 📈 Prosent og Svinn")
-        st.write("Vi legger til svinn (ofte 10%) fordi noe kappes bort. Gange med 1,10.")
+    elif m_kat == "Prosent":
+        st.write("### 📈 Prosent – deler av hundre")
+        st.write("Prosent betyr “av hundre”. Tenk deg 100 godterier. Hvis du får 25 av dem, har du fått 25 %. Formel: Del ÷ helhet × 100. Vi legger ofte til svinn i materialkostnader (ofte 10% eller mer) fordi noe kappes bort. Formel: Gange med 1,10.")
         st.write("**Oppgave:** Du trenger 50 meter kledning. Med 10% svinn, hvor mye bestiller du?")
         ans3 = st.radio("Svar:", ["55m", "50,1m"], index=None, key="m3")
         if st.button("Sjekk Svinn"):
@@ -209,7 +209,7 @@ with tab_matte:
 
     elif m_kat == "Målestokk":
         st.write("### 🗺️ Målestokk")
-        st.write("Målestokk 1:50 betyr at virkeligheten er 50 ganger større enn tegningen.")
+        st.write("Målestokk 1:50 betyr at virkeligheten er 50 ganger større enn tegningen. Formel: Virkelig lengde = tegnet lengde × målestokk")
         st.write("**Oppgave:** På tegning (1:50) måler du 10cm. Hvor langt er det i virkeligheten?")
         ans4 = st.radio("Svar:", ["5 meter", "50 cm"], index=None, key="m4")
         if st.button("Sjekk Målestokk"):
@@ -239,4 +239,5 @@ with tab_quiz:
 
 with tab_leader:
     st.table(pd.DataFrame({"Navn": [st.session_state.user_name, "Lærer"], "Poeng": [st.session_state.points, 400]}).sort_values("Poeng", ascending=False))
+
 
