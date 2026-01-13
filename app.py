@@ -176,12 +176,13 @@ with tab_info:
 
 with tab_matte:
     st.header("📐 Praktisk matematikk")
-    m_kat = st.radio("Velg emne:", ["Omkrets", "Areal", "Prosent & Svinn", "Målestokk", "Vg2: Vinkler"], horizontal=True)
+    # Her har jeg lagt til Volum og Vinkler i menyen
+    m_kat = st.radio("Velg emne:", ["Omkrets", "Areal", "Volum", "Prosent & Svinn", "Målestokk", "Vinkler"], horizontal=True)
     
     if m_kat == "Omkrets":
-        st.write("### 📏 Omkrets – hvor langt det er rundt")
-        st.write("Omkretsen er summen av alle sidene. Vi legger sammen alle sidene rundt formen for å finne hvor langt det er rundt. Brukes praktisk kan man bruke denne formelen til å liste rundt et vindu, langs gulvet eller taket.")
-        st.latex(r"Omkrets = S_1 + S_2 + S_3 + S_4")
+        st.write("### 📏 Omkrets – veien rundt")
+        st.write("Omkrets er den totale lengden av alle ytterkantene til en figur. Vi bruker dette for å finne ut hvor mye listverk, grunnmursplast eller gjerde vi trenger.")
+        st.latex(r"Omkrets = Side + Side + Side + Side")
         st.write("**Oppgave:** Et rom er 4m langt og 3m bredt. Hvor mange meter list trenger du?")
         ans1 = st.radio("Svar:", ["7m", "14m", "12m"], index=None, key="m1")
         if st.button("Sjekk Omkrets"):
@@ -189,42 +190,65 @@ with tab_matte:
                 st.success("Riktig! (4+3+4+3)"); st.session_state.points += 5
 
     elif m_kat == "Areal":
-        st.write("### ⬛ Areal – hvor mye plass noe tar ")
-        st.write("Tenk deg at du skal legge gulv på et rom. Arealet sier hvor mange gulvplater som trengs. Enkelt forklart: Areal er hvor mye plass noe tar inni en form. Eksempel: Et teppe som er 4 meter langt og 3 meter bredt: 4 × 3 = 12 kvadratmeter. Det betyr at teppet dekker 12 ruter på 1 m × 1 m.")
-        st.latex(r"Areal = L \times B")
-        st.write("**Oppgave:** Du skal legge gulv i en bod på 2,5m x 4m. Hvor mange m²?")
+        st.write("### ⬛ Areal – flateberegning")
+        st.write("Areal forteller oss hvor stor en overflate er ($m^2$). Dette bruker du hver gang du skal bestille parkett, gipsplater eller maling.")
+        
+
+[Image of area calculation for a rectangle]
+
+        st.latex(r"Areal = Lengde \times Bredde")
+        st.write("**Oppgave:** Du skal legge gips i et tak som er 2,5m bredt og 4m langt. Hvor mange m² gips trenger du?")
         ans2 = st.radio("Svar:", ["6,5 m²", "10 m²", "8 m²"], index=None, key="m2")
         if st.button("Sjekk Areal"):
             if ans2 == "10 m²":
                 st.success("Helt rett! 2,5 * 4 = 10 m²"); st.session_state.points += 5
 
+    elif m_kat == "Volum":
+        st.write("### 🧊 Volum – innhold i en figur")
+        st.write("Volum forteller oss hvor mye plass en gjenstand tar, eller hvor mye den rommer ($m^3$). Som murer eller betongarbeider bruker du dette for å beregne hvor mye betong som skal bestilles til en forskaling.")
+        
+
+[Image of volume calculation for a rectangular prism]
+
+        st.latex(r"Volum = Lengde \times Bredde \times Høyde")
+        st.info("💡 **Tips:** Husk at alle mål må være i samme enhet (meter) før du ganger dem sammen!")
+        st.write("**Oppgave:** Du skal støpe en såle som er 5 meter lang, 2 meter bred og 0,2 meter (20 cm) høy. Hvor mange kubikkmeter ($m^3$) betong må du bestille?")
+        ans_vol = st.radio("Svar:", ["2,0 m³", "1,0 m³", "7,2 m³"], index=None, key="m_vol")
+        if st.button("Sjekk Volum"):
+            if ans_vol == "2,0 m³":
+                st.success("Riktig! 5 * 2 * 0,2 = 2,0 m³ betong."); st.session_state.points += 10
+            else: st.error("Prøv igjen! Husk: 5 * 2 * 0,2.")
+
     elif m_kat == "Prosent & Svinn":
-        st.write("### 📈 Prosent – deler av hundre")
-        st.write("Prosent betyr “av hundre”. Tenk deg 100 godterier. Hvis du får 25 av dem, har du fått 25 %. Formel: Del ÷ helhet × 100. Vi legger ofte til svinn i materialkostnader (ofte 10% eller mer) fordi noe kappes bort. Formel: Gange med 1,10.")
-        st.write("**Oppgave:** Du trenger 50 meter kledning. Med 10% svinn, hvor mye bestiller du?")
-        ans3 = st.radio("Svar:", ["55m", "50,1m"], index=None, key="m3")
+        st.write("### 📈 Prosent og Svinn – deler av hundre")
+        st.write("I byggfag legger vi alltid til **svinn** (ekstra materialer) fordi noe kappes bort eller blir ødelagt. 10 % svinn er standard på mange materialer.")
+        st.latex(r"Bestilling = Behov \times 1,10")
+        st.write("**Oppgave:** Du trenger 60 meter kledning. Med 10 % svinn, hvor mye må du bestille?")
+        ans3 = st.radio("Svar:", ["66m", "60,1m", "70m"], index=None, key="m3")
         if st.button("Sjekk Svinn"):
-            if ans3 == "55m":
-                st.success("Riktig! 50 + 5 = 55m."); st.session_state.points += 10
+            if ans3 == "66m":
+                st.success("Riktig! 60 + 6 (10 %) = 66m."); st.session_state.points += 10
 
     elif m_kat == "Målestokk":
-        st.write("### 🗺️ Målestokk")
-        st.write("Målestokk 1:50 betyr at virkeligheten er 50 ganger større enn tegningen. Formel: Virkelig lengde = tegnet lengde × målestokk")
-        st.write("**Oppgave:** På tegning (1:50) måler du 10cm. Hvor langt er det i virkeligheten?")
-        ans4 = st.radio("Svar:", ["5 meter", "50 cm"], index=None, key="m4")
+        st.write("### 🗺️ Målestokk – fra tegning til bygg")
+        st.write("Målestokk 1:50 betyr at virkeligheten er 50 ganger større enn tegningen. 1 cm på tegningen tilsvarer 50 cm i virkeligheten.")
+        st.write("**Oppgave:** På en tegning (1:50) måler du en vegg til 10 cm. Hvor lang er den i virkeligheten?")
+        ans4 = st.radio("Svar:", ["5 meter", "50 cm", "2 meter"], index=None, key="m4")
         if st.button("Sjekk Målestokk"):
             if ans4 == "5 meter":
-                st.success("Riktig! 10cm * 50 = 5m."); st.session_state.points += 10
+                st.success("Riktig! 10cm * 50 = 500cm = 5m."); st.session_state.points += 10
 
-    elif m_kat == "Vg2: Vinkler":
-        st.write("### 📐 Vinkler (3-4-5 regelen)")
-        st.write("For å sjekke 90 grader. Hvis sidene er 3 og 4, må diagonalen være 5.")
+    elif m_kat == "Vinkler":
+        st.write("### 📐 Vinkler – Pytagoras og 3-4-5 regelen")
+        st.write("For å sjekke om et hjørne er nøyaktig 90 grader (vinkel), bruker vi Pytagoras. En praktisk metode på byggeplassen er **3-4-5-regelen**.")
+        
+        st.write("Hvis du måler 3 enheter på den ene siden og 4 enheter på den andre, skal diagonalen mellom punktene være nøyaktig 5 enheter for at det skal være vinkel.")
         st.latex(r"a^2 + b^2 = c^2")
-        st.write("**Oppgave:** Sidene er 60cm og 80cm. Hva er diagonalen i vinkel?")
-        ans5 = st.radio("Svar:", ["100cm", "140cm"], index=None, key="m5")
+        st.write("**Oppgave:** Du måler 60 cm ut på en vegg og 80 cm ut på den andre. Hva må diagonalen være for at hjørnet skal være i rett vinkel?")
+        ans5 = st.radio("Svar:", ["100 cm", "140 cm", "120 cm"], index=None, key="m5")
         if st.button("Sjekk Vinkel"):
-            if ans5 == "100cm":
-                st.success("Vinkelen er 90 grader!"); st.session_state.points += 20; st.balloons()
+            if ans5 == "100 cm":
+                st.success("Helt rett! (30*2, 40*2, 50*2). Vinkelen er 90 grader."); st.session_state.points += 15; st.balloons())
 
 with tab_quiz:
     q_sel = st.selectbox("Velg quiz:", list(data_db.keys()), key="q_box")
@@ -239,6 +263,7 @@ with tab_quiz:
 
 with tab_leader:
     st.table(pd.DataFrame({"Navn": [st.session_state.user_name, "Lærer"], "Poeng": [st.session_state.points, 400]}).sort_values("Poeng", ascending=False))
+
 
 
 
