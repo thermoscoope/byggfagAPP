@@ -69,11 +69,11 @@ with col2:
 
 st.divider()
 
-# --- DATABASE FOR ALLE 10 TEMAER (Basert på vilbli.no) ---
+# --- DATABASE FOR ALLE 10 TEMAER (Utvidet info) ---
 data_db = {
     "Anleggsgartner": {
-        "beskrivelse": "🌱 Bygger og vedlikeholder uterom, parker og hager. Kombinerer levende planter med stein, betong og tre.",
-        "verktoy": "Vater, murersnor, steinkutter, lasere, mindre gravemaskiner.",
+        "beskrivelse": "🌱 Bygger og vedlikeholder uterom, parker og hager. Kombinerer planter med stein, betong og tre.",
+        "verktoy": "Vater, murersnor, steinkutter, maskiner for graving, dumper og vibrasjonsplate.",
         "utdanning": "📜 Vg1 Bygg -> Vg2 Anleggsgartner -> 2 år lærlingtid.",
         "videre": "🎓 Fagskole, mesterbrev eller landskapsarkitektur.",
         "motivasjon": "✨ Liker du å se resultater som vokser og blir vakrere med årene? Her setter du spor folk vil nyte i generasjoner!",
@@ -170,7 +170,7 @@ with tab_info:
         st.markdown("### 🎓 Utdanningsløp")
         st.write(f["utdanning"])
     st.success(f"**🚀 Videreutdanning:** {f['videre']}")
-    st.info(f"💡 **Tips:** {f['motivasjon']}")
+    st.info(f"💡 **Motiverende ord:** {f['motivasjon']}")
 
 with tab_matte:
     st.header("📐 Praktisk matematikk")
@@ -178,23 +178,23 @@ with tab_matte:
     
     if m_kat == "Omkrets":
         st.write("### 📏 Omkrets – Veien rundt")
-        st.write("Omkrets er summen av alle sidene. Brukes til å beregne lister eller gjerder.")
+        st.write("Omkretsen er summen av alle sidene i en figur. Tenk deg at du skal legge en list langs gulvet.")
         st.latex(r"Omkrets = S_1 + S_2 + S_3 + S_4")
         st.write("**Oppgave:** Et rom er 5m langt og 4m bredt. Hvor mye list går med?")
         ans1 = st.radio("Svar:", ["9m", "18m", "20m"], index=None, key="m1")
         if st.button("Sjekk Omkrets"):
             if ans1 == "18m":
-                st.success("Riktig!"); st.session_state.points += 5
+                st.success("Riktig! (5+4+5+4)"); st.session_state.points += 5
 
     elif m_kat == "Areal":
         st.write("### ⬛ Areal – Flateberegning")
-        st.write("Areal (m²) er Lengde x Bredde. Brukes for å kjøpe parkett, maling eller gips.")
+        st.write("Areal (m²) er Lengde x Bredde. Brukes for å beregne parkett eller maling.")
         
 
 [Image of area calculation for a rectangle]
 
         st.latex(r"A = L \times B")
-        st.write("**Oppgave:** Du skal legge gips i et tak på 3m x 4m. Hvor mange m²?")
+        st.write("**Oppgave:** Du skal legge gips i et tak på 3m x 4m. Hvor mange m² gips trenger du?")
         ans2 = st.radio("Svar:", ["7m²", "12m²", "10m²"], index=None, key="m2")
         if st.button("Sjekk Areal"):
             if ans2 == "12m²":
@@ -202,13 +202,13 @@ with tab_matte:
 
     elif m_kat == "Volum":
         st.write("### 🧊 Volum – Innhold")
-        st.write("Volum (m³) er Lengde x Bredde x Høyde. Brukes for å bestille betong.")
+        st.write("Volum (m³) beregnes ved Lengde x Bredde x Høyde. Brukes for å bestille betong.")
         
 
 [Image of volume calculation for a rectangular prism]
 
         st.latex(r"V = L \times B \times H")
-        st.write("**Oppgave:** En såle er 5m lang, 2m bred og 0,2m høy. Hvor mye betong?")
+        st.write("**Oppgave:** En betongsåle er 5m lang, 2m bred og 0,2m høy. Hvor mye betong må du bestille?")
         ans_v = st.radio("Svar:", ["1m³", "2m³", "7m³"], index=None, key="mv")
         if st.button("Sjekk Volum"):
             if ans_v == "2m³":
@@ -216,7 +216,7 @@ with tab_matte:
 
     elif m_kat == "Prosent & Svinn":
         st.write("### 📈 Prosent og Svinn")
-        st.write("Legg til 10% svinn ved å gange med 1,10.")
+        st.write("Prosent betyr deler av hundre. Ved materialbestilling legger vi til svinn (ofte 10%) ved å gange med 1,10.")
         st.write("**Oppgave:** Du trenger 60m panel. Hvor mye bestiller du med 10% svinn?")
         ans3 = st.radio("Svar:", ["66m", "60,1m"], index=None, key="m3")
         if st.button("Sjekk Svinn"):
@@ -226,7 +226,7 @@ with tab_matte:
     elif m_kat == "Målestokk":
         st.write("### 🗺️ Målestokk")
         st.write("1:50 betyr at virkeligheten er 50 ganger større enn tegningen.")
-        st.write("**Oppgave:** 10cm på tegning (1:50). Hvor langt er det i virkeligheten?")
+        st.write("**Oppgave:** 10cm på en tegning i 1:50. Hvor langt er det i virkeligheten?")
         ans4 = st.radio("Svar:", ["5 meter", "50 cm"], index=None, key="m4")
         if st.button("Sjekk Målestokk"):
             if ans4 == "5 meter":
@@ -234,25 +234,25 @@ with tab_matte:
 
     elif m_kat == "Vinkler":
         st.write("### 📐 Vinkler (3-4-5 regelen)")
-        st.write("Hvis sidene er 3 og 4, må diagonalen være 5 for å ha 90 grader.")
+        st.write("For å sikre rett vinkel (90 grader): Hvis sidene er 3 og 4 enheter, må diagonalen være 5.")
         
         st.latex(r"a^2 + b^2 = c^2")
-        st.write("**Oppgave:** Sidene er 60cm og 80cm. Hva må diagonalen være?")
+        st.write("**Oppgave:** Sidene i et hjørne er 60cm og 80cm. Hva må diagonalen være for at det skal være vinkel?")
         ans5 = st.radio("Svar:", ["100cm", "140cm"], index=None, key="m5")
         if st.button("Sjekk Vinkel"):
             if ans5 == "100cm":
-                st.success("Riktig!"); st.session_state.points += 15; st.balloons()
+                st.success("Riktig! Hjørnet er i vinkel."); st.session_state.points += 15; st.balloons()
 
 with tab_quiz:
     q_sel = st.selectbox("Velg tema for quiz:", list(data_db.keys()), key="q_box")
     spm, valg, svar = data_db[q_sel]["quiz"]
     st.write(f"### {spm}")
-    res = st.radio("Svar:", valg, index=None)
+    res = st.radio("Ditt svar:", valg, index=None)
     if st.button("Sjekk Quiz-svar"):
         if res == svar:
             st.success("Riktig!"); st.session_state.points += 20; st.balloons(); st.rerun()
         else:
-            st.error("Feil, prøv igjen!")
+            st.error("Feil svar, prøv igjen!")
 
 with tab_leader:
     st.write("### Toppliste")
