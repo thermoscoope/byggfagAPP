@@ -180,7 +180,7 @@ with tab_matte:
     
     if m_kat == "Omkrets":
         st.write("### 📏 Omkrets – hvor langt det er rundt")
-        st.write("Omkretsen er summen av alle sidene. Brukes til lister, gjerder eller grunnmursplast.")
+        st.write("Omkretsen er summen av alle sidene. Vi legger sammen alle sidene rundt formen for å finne hvor langt det er rundt. Brukes praktisk kan man bruke denne formelen til å liste rundt et vindu, langs gulvet eller taket.")
         st.latex(r"Omkrets = S_1 + S_2 + S_3 + S_4")
         st.write("**Oppgave:** Et rom er 4m langt og 3m bredt. Hvor mange meter list trenger du?")
         ans1 = st.radio("Svar:", ["7m", "14m", "12m"], index=None, key="m1")
@@ -239,6 +239,7 @@ with tab_quiz:
 
 with tab_leader:
     st.table(pd.DataFrame({"Navn": [st.session_state.user_name, "Lærer"], "Poeng": [st.session_state.points, 400]}).sort_values("Poeng", ascending=False))
+
 
 
 
