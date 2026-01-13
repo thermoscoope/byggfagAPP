@@ -190,16 +190,7 @@ with tab_matte:
 
     elif m_kat == "Areal":
         st.write("### ⬛ Areal (Overflaten)")
-        st.write("Tenk deg at du skal legge gulv på et rom.
-Arealet sier hvor mange gulvplater som trengs.
-
-Enkelt forklart:
-Areal er hvor mye plass noe tar inni en form.
-
-Eksempel:
-Et teppe som er 4 meter langt og 3 meter bredt:
-4 × 3 = 12 kvadratmeter
-Det betyr at teppet dekker 12 ruter på 1 m × 1 m.")
+        st.write("Areal forteller hvor stor en flate er ($m^2$). Brukes til gulv, maling eller gipsplater.")
         st.latex(r"Areal = L \times B")
         st.write("**Oppgave:** Du skal legge gulv i en bod på 2,5m x 4m. Hvor mange m²?")
         ans2 = st.radio("Svar:", ["6,5 m²", "10 m²", "8 m²"], index=None, key="m2")
@@ -248,5 +239,3 @@ with tab_quiz:
 
 with tab_leader:
     st.table(pd.DataFrame({"Navn": [st.session_state.user_name, "Lærer"], "Poeng": [st.session_state.points, 400]}).sort_values("Poeng", ascending=False))
-
-
