@@ -1,10 +1,11 @@
 import streamlit as st
 from openai import OpenAI
+import pandas as pd
 
 # 1. Konfigurasjon og Visuelt Design
 st.set_page_config(page_title="Byggfagtreneren", page_icon="🏗️", layout="centered")
 
-# Mørk bakgrunn med hvit skrift for lesbarhet
+# Design med hvit skrift og mørk bakgrunn
 st.markdown("""
     <style>
     .stApp { background-color: #121212; }
@@ -16,28 +17,40 @@ st.markdown("""
         font-weight: bold;
         width: 100%;
     }
-    .stSelectbox label { color: #FFB300 !important; }
+    .stTable { background-color: #1E1E1E; color: white; }
     </style>
     """, unsafe_allow_html=True)
 
-# 2. Initialisering av poeng og meldinger
+# 2. Initialisering
 if 'points' not in st.session_state:
     st.session_state.points = 0
 if 'messages' not in st.session_state:
     st.session_state.messages = []
+if 'user_name' not in st.session_state:
+    st.session_state.user_name = ""
 
-# --- TOPP-RAD: Tittel og AI-Hjelper side om side ---
+# --- INNLOGGING / NAVN ---
+if not st.session_state.user_name:
+    st.title("🏗️ Velkommen til Byggfagtreneren")
+    name = st.text_input("Skriv inn navnet ditt for å starte:")
+    if st.button("Start Trening"):
+        if name:
+            st.session_state.user_name = name
+            st.rerun()
+        else:
+            st.warning("Vennligst skriv inn et navn.")
+    st.stop()
+
+# --- TOPP-RAD: Tittel og AI ---
 col1, col2 = st.columns([2, 1])
-
 with col1:
     st.title("🏗️ Byggfagtreneren")
-    st.write(f"Poengsum: **{st.session_state.points}**")
+    st.write(f"Bruker: **{st.session_state.user_name}** | Poeng: **{st.session_state.points}**")
 
 with col2:
     with st.popover("🤖 AI-Hjelper"):
         st.write("### Spør Verksmesteren")
         user_prompt = st.chat_input("Hva lurer du på?")
-        
         if user_prompt:
             try:
                 if "OPENAI_API_KEY" in st.secrets:
@@ -52,26 +65,16 @@ with col2:
                     ans = response.choices[0].message.content
                     st.session_state.messages.append({"role": "assistant", "content": ans})
                 else:
-                    st.error("API-nøkkel mangler i Secrets!")
+                    st.error("Nøkkel mangler i Secrets!")
             except Exception:
                 st.error("Kunne ikke koble til AI.")
-
         for m in st.session_state.messages[-2:]:
-            st.write(f"**AI:** {m['content']}")
+            st.write(f"🗨️ {m['content']}")
 
 st.divider()
 
-# --- NIVÅ-STYRING ---
-if st.session_state.points < 100:
-    n_key, status = "n1", "Lærling-spire 🌱"
-elif st.session_state.points < 300:
-    n_key, status = "n2", "Fagarbeider 🛠️"
-else:
-    n_key, status = "n3", "Mester 🏆"
-
-st.write(f"Status: **{status}**")
-
-# --- KOMPLETT DATABASE FOR ALLE 10 TEMAER ---
+# --- HOVEDMENY (ALLE 10 TEMAER) ---
+# Basert på Tittel.docx og utdanningsvalg.png 
 quiz_db = {
     "Anleggsgartner": {
         "n1": ("Hva brukes en murersnor til?", ["Lage rette linjer", "Måle fukt", "Kutte stein"], "Lage rette linjer"),
@@ -125,22 +128,52 @@ quiz_db = {
     }
 }
 
-# --- VISNING AV QUIZ ---
-temaer = list(quiz_db.keys())
-valgt_tema = st.selectbox("Velg programområde:", temaer)
+# Nivå-styring
+if st.session_state.points < 100:
+    n_key, status = "n1", "Lærling-spire 🌱"
+elif st.session_state.points < 300:
+    n_key, status = "n2", "Fagarbeider 🛠️"
+else:
+    n_key, status = "n3", "Mester 🏆"
 
-if valgt_tema in quiz_db:
-    spm, valg, svar = quiz_db[valgt_tema][n_key]
-    st.write(f"### {spm}")
-    bruker_svar = st.radio("Velg svar:", valg, index=None, key=f"q_{valgt_tema}")
+st.write(f"Din nåværende status: **{status}**")
 
-    if st.button("Sjekk svar"):
-        if bruker_svar == svar:
-            st.success("RIKTIG! Du fikk 20 poeng.")
-            st.session_state.points += 20
-            st.balloons()
+# Tab-visning for Quiz og Leaderboard
+tab_quiz, tab_leader = st.tabs(["🎮 Quiz", "🏆 Leaderboard"])
+
+with tab_quiz:
+    valgt_tema = st.selectbox("Velg programområde:", list(quiz_db.keys()))
+    if valgt_tema in quiz_db:
+        spm, valg, svar = quiz_db[valgt_tema][n_key]
+        st.write(f"### {spm}")
+        bruker_svar = st.radio("Velg svar:", valg, index=None, key=f"q_{valgt_tema}")
+        if st.button("Sjekk svar"):
+            if bruker_svar == svar:
+                st.success("RIKTIG! Du fikk 20 poeng.")
+                st.session_state.points += 20
+                st.balloons()
+                st.rerun()
+            elif bruker_svar is None:
+                st.warning("Velg et svar.")
+            else:
+                st.error("Feil svar. Prøv igjen!")
+
+with tab_leader:
+    st.write("### Toppliste")
+    # Her lager vi et eksempel på et leaderboard. 
+    # For en ekte klasse bør dette kobles til en database.
+    data = {
+        "Navn": [st.session_state.user_name, "Lærer (Demo)", "Anlegg-pro"],
+        "Poeng": [st.session_state.points, 500, 240]
+    }
+    df = pd.DataFrame(data).sort_values(by="Poeng", ascending=False)
+    st.table(df)
+
+# --- LÆRER DASHBORD ---
+with st.expander("🔐 For lærer"):
+    pw = st.text_input("Passord:", type="password")
+    if pw == "bygg123":
+        st.write(f"Elev {st.session_state.user_name} har {st.session_state.points} poeng.")
+        if st.button("Nullstill poeng"):
+            st.session_state.points = 0
             st.rerun()
-        elif bruker_svar is None:
-            st.warning("Vennligst velg et alternativ først!")
-        else:
-            st.error("Feil svar. Prøv igjen!")
