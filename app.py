@@ -100,7 +100,7 @@ quiz_data = {
 
 # --- 3. MENY-NAVIGASJON ---
 with st.sidebar:
-    st.markdown("<h2 style='color:white;'>Finora Bygg</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='color:white;'>Byggfagtreneren</h2>", unsafe_allow_html=True)
     st.markdown("<p style='color:white; font-size:12px; font-weight:bold;'>HOVEDMENY</p>", unsafe_allow_html=True)
     side = st.radio("", ["🏠 Dashboard", "🎯 Kunnskapstest", "📝 Loggbok"], label_visibility="collapsed")
     
@@ -150,3 +150,4 @@ elif side == "📝 Loggbok":
     st.camera_input("Ta bilde av utført arbeid") # Åpner kameraet direkte på mobil
     st.text_area("Hva har du gjort i dag?")
     st.button("SEND INN")
+
