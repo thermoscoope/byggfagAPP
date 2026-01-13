@@ -198,7 +198,7 @@ with tab_matte:
             if ans2 == "10 m²":
                 st.success("Helt rett! 2,5 * 4 = 10 m²"); st.session_state.points += 5
 
-    elif m_kat == "Prosent":
+    elif m_kat == "Prosent & Svinn":
         st.write("### 📈 Prosent – deler av hundre")
         st.write("Prosent betyr “av hundre”. Tenk deg 100 godterier. Hvis du får 25 av dem, har du fått 25 %. Formel: Del ÷ helhet × 100. Vi legger ofte til svinn i materialkostnader (ofte 10% eller mer) fordi noe kappes bort. Formel: Gange med 1,10.")
         st.write("**Oppgave:** Du trenger 50 meter kledning. Med 10% svinn, hvor mye bestiller du?")
@@ -239,5 +239,6 @@ with tab_quiz:
 
 with tab_leader:
     st.table(pd.DataFrame({"Navn": [st.session_state.user_name, "Lærer"], "Poeng": [st.session_state.points, 400]}).sort_values("Poeng", ascending=False))
+
 
 
