@@ -242,7 +242,7 @@ with tab_matte:
 
     elif m_kat == "Prosent & Svinn":
         st.write("### 📈 Prosent og Svinn")
-        st.write("Prosent betyr "per hundre" eller "hundredel", og tegnet (%) representerer en del av hundre, der 1 % er én hundredel (1/100) av en mengde. Prosent brukes til å uttrykke en andel eller brøkdel av en helhet, som for eksempel 25 % er 25 av 100 deler, eller 0,25 som desimaltall. Vi legger til svinn (ofte 10%-15%) fordi noe kappes bort.")
+        st.write("Vi legger til svinn (ofte 10%-15%) fordi noe kappes bort.")
         st.write("**Oppgave:** Du trenger 50 meter kledning. Med 10% svinn, hvor mye bestiller du?")
         ans3 = st.radio("Svar:", ["55m", "50,1m"], index=None, key="m3")
         if st.button("Sjekk Svinn"):
@@ -282,4 +282,3 @@ with tab_quiz:
 
 with tab_leader:
     st.table(pd.DataFrame({"Navn": [st.session_state.user_name, "Lærer"], "Poeng": [st.session_state.points, 400]}).sort_values("Poeng", ascending=False))
-
