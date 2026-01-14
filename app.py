@@ -3,185 +3,267 @@ from openai import OpenAI
 import pandas as pd
 import math
 
-# 1. Konfigurasjon - Layout "wide" er ofte brukt i moderne dashbord
-st.set_page_config(page_title="Byggfagtreneren", page_icon="🏗️", layout="wide")
+# 1. Konfigurasjon og Visuelt Design
+st.set_page_config(page_title="Byggfagtreneren", page_icon="🏗️", layout="centered")
 
-# 2. Base44-inspirert CSS (Mørkeblå toner, avrundede kort, profesjonell skrift)
 st.markdown("""
     <style>
-    /* Bakgrunn og skrifttype */
-    .stApp { background-color: #0B0E14; }
-    * { font-family: 'Inter', 'Segoe UI', sans-serif; }
-
-    /* Sidemeny (Sidebar) */
-    [data-testid="stSidebar"] {
-        background-color: #11141D;
-        border-right: 1px solid #1F2937;
-    }
-
-    /* Kort-design for innhold */
-    .stMarkdown div[data-testid="stMarkdownContainer"] p, .stAlert, div.row-widget.stButton {
-        color: #D1D5DB;
-    }
+    .stApp { background-color: #121212; }
+    h1, h2, h3, p, span, label, .stMarkdown { color: #FFFFFF !important; }
     
-    /* Overskrifter */
-    h1, h2, h3 { color: #FFFFFF !important; font-weight: 700 !important; }
-
-    /* Knapper (Base44 stil: Blå/Indigo) */
+    /* Hovedknapper */
     .stButton>button { 
-        border-radius: 8px; 
-        background-color: #4F46E5; 
-        color: #FFFFFF !important; 
-        border: none;
-        padding: 0.5rem 1rem;
-        font-weight: 600;
-        transition: all 0.2s;
-    }
-    .stButton>button:hover {
-        background-color: #4338CA;
-        transform: translateY(-1px);
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        border-radius: 12px; 
+        background-color: #FFB300; 
+        color: #000000 !important; 
+        font-weight: bold;
+        width: 100%;
     }
 
-    /* Radio-knapper og Selectbox */
-    .stSelectbox label, .stRadio label { color: #9CA3AF !important; }
-    
-    /* Styling av faner (hvis de brukes) */
-    .stTabs [data-baseweb="tab-list"] { gap: 8px; }
-    .stTabs [data-baseweb="tab"] {
-        background-color: #11141D;
-        border-radius: 8px 8px 0 0;
-        color: #9CA3AF;
+    /* Gult felt for Spør verksmesteren-knappen */
+    div[data-testid="stPopover"] > button {
+        background-color: #FFB300 !important;
+        color: #000000 !important;
+        font-weight: bold !important;
+        border: 2px solid #FFFFFF !important;
     }
+    
+    .stSelectbox label { color: #FFB300 !important; }
     </style>
     """, unsafe_allow_html=True)
 
-# Initialisering
-if 'points' not in st.session_state: st.session_state.points = 0
-if 'messages' not in st.session_state: st.session_state.messages = []
-if 'user_name' not in st.session_state: st.session_state.user_name = ""
+# 2. Initialisering
+if 'points' not in st.session_state:
+    st.session_state.points = 0
+if 'messages' not in st.session_state:
+    st.session_state.messages = []
+if 'user_name' not in st.session_state:
+    st.session_state.user_name = ""
 
 # --- INNLOGGING ---
 if not st.session_state.user_name:
-    col_l, col_m, col_r = st.columns([1, 2, 1])
-    with col_m:
-        st.title("🏗️ Byggfagtreneren")
-        st.write("Logg inn for å starte din faglige reise.")
-        name = st.text_input("Ditt navn:")
-        if st.button("Logg inn"):
-            if name:
-                st.session_state.user_name = name
-                st.rerun()
+    st.title("🏗️ Velkommen til Byggfagtreneren")
+    name = st.text_input("Skriv inn navnet ditt for å starte:")
+    if st.button("Start Trening"):
+        if name:
+            st.session_state.user_name = name
+            st.rerun()
     st.stop()
 
-# --- SIDEMENY (Navigasjon) ---
-with st.sidebar:
-    st.title("🏗️ Treneren")
-    nav_valg = st.radio("MENY", ["📚 Infokanal", "📐 Praktisk matte", "🎮 Quiz", "🏆 Leaderboard"])
-    st.divider()
-    st.write(f"Elev: **{st.session_state.user_name}**")
-    st.write(f"Poeng: **{st.session_state.points}**")
-    
-    # AI-hjelper i bunnen av sidemeny
-    with st.expander("👷 Spør verksmesteren"):
-        prompt = st.chat_input("Hva lurer du på?")
-        if prompt:
-            try:
-                client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
-                res = client.chat.completions.create(
-                    model="gpt-3.5-turbo",
-                    messages=[{"role": "system", "content": "Svar kort som byggmester."}, {"role": "user", "content": prompt}]
-                )
-                st.session_state.messages.append(res.choices[0].message.content)
-            except: st.error("AI utilgjengelig")
-        for m in st.session_state.messages[-1:]: st.write(f"🗨️ {m}")
+# --- TOPP-RAD ---
+col1, col2 = st.columns([2, 1])
+with col1:
+    st.title("🏗️ Byggfagtreneren")
+    st.write(f"Bruker: **{st.session_state.user_name}** | Poeng: **{st.session_state.points}**")
 
-# --- DATABASE (Viktigste programfag) ---
+with col2:
+    with st.popover("👷 Spør verksmesteren", use_container_width=True):
+        st.write("### Verksmesteren")
+        user_prompt = st.chat_input("Hva lurer du på?")
+        if user_prompt:
+            try:
+                if "OPENAI_API_KEY" in st.secrets:
+                    client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+                    response = client.chat.completions.create(
+                        model="gpt-3.5-turbo",
+                        messages=[
+                            {"role": "system", "content": "Du er en erfaren norsk verksmester. Svar kort og pedagogisk på norsk om byggfag."},
+                            {"role": "user", "content": user_prompt}
+                        ]
+                    )
+                    ans = response.choices[0].message.content
+                    st.session_state.messages.append({"role": "assistant", "content": ans})
+                else:
+                    st.error("API-nøkkel mangler i Secrets!")
+            except:
+                st.error("Kunne ikke koble til AI.")
+
+        for m in st.session_state.messages[-2:]:
+            st.write(f"**Verksmesteren:** {m['content']}")
+
+st.divider()
+
+# --- DATABASE FOR ALLE 10 TEMAER ---
 data_db = {
-    "Tømrer": {
-        "beskrivelse": "🏠 **Tømrerfaget:** Som tømrer bygger du hus i tre fra grunnen av. Du jobber med alt fra reisverk og tak til finsnekring inne.",
-        "verktoy": "Hammer, kappsag, laser, drill, vinkel.",
-        "utdanning": "📜 Vg1 Bygg -> Vg2 Tømrer -> Lærling.",
-        "videre": "🎓 Mesterbrev eller byggeleder.",
-        "motivasjon": "Liker du å skape noe varig med hendene? Tømrerfaget gir deg stolthet i hvert bygg!",
-        "quiz": ("Hva er standard c/c på stendere i Norge?", ["60 cm", "40 cm"], "60 cm")
+    "Anleggsgartner": {
+        "beskrivelse": "🌱 Bygger og vedlikeholder uterom, parker og hager. 🧱 Kombinerer levende planter med stein, betong og tre.",
+        "verktoy": "Vater, murersnor, steinkutter, gravemaskin.",
+        "utdanning": "📜 Vg1 Bygg -> Vg2 Anleggsgartner -> 2 år lærlingtid.",
+        "videre": "🎓 Fagskole, mesterbrev eller landskapsarkitektur.",
+        "motivasjon": "✨ Liker du å se resultater som vokser? Her setter du spor folk vil nyte i generasjoner!",
+        "quiz": ("Hva brukes en murersnor til?", ["Lage rette linjer", "Måle fukt"], "Lage rette linjer")
     },
     "Anleggsteknikk": {
-        "beskrivelse": "🚜 **Anleggsteknikk:** Du opererer de største maskinene som finnes og bygger veier, tunneler og jernbane.",
-        "verktoy": "Gravemaskin, hjullaster, dumper, GPS-utstyr.",
+        "beskrivelse": "🚜 Betjener store maskiner for veibygging, tunneler og utgraving. 🏗️ Legger grunnlaget for samfunnet.",
+        "verktoy": "Gravemaskiner, hjullastere, dumper, GPS-måleutstyr.",
         "utdanning": "📜 Vg1 Bygg -> Vg2 Anleggsteknikk -> Lærling.",
-        "videre": "🎓 Maskinentreprenørskolen eller fagskole.",
-        "motivasjon": "Bli med på å flytte fjell! Her får du ansvar for maskiner verdt millioner.",
-        "quiz": ("Hva gjør en dumper?", ["Flytter masser", "Maler striper"], "Flytter masser")
+        "videre": "🎓 Maskinentreprenørskolen, fagskole eller ingeniør.",
+        "motivasjon": "💪 Fascinert av store krefter? Her får du flytte fjell og bygge veiene som binder landet sammen!",
+        "quiz": ("Hva er påbudt i grøft?", ["Hjelm og vernesko", "Joggesko"], "Hjelm og vernesko")
+    },
+    "Betong og mur": {
+        "beskrivelse": "🏢 Bygger solide konstruksjoner i betong og stein. 🏗️ Fra grunnmurer til store bruer.",
+        "verktoy": "Forskalingsutstyr, blandemaskin, murerkjei, vater.",
+        "utdanning": "📜 Vg1 Bygg -> Vg2 Betong og mur -> Lærling.",
+        "videre": "🎓 Mesterbrev, fagskole eller byggeteknikk.",
+        "motivasjon": "🧱 Vil du bygge noe som står i 100 år? Du er arkitektens høyre hånd i å forme bybildet!",
+        "quiz": ("Hvorfor armere betong?", ["Øke strekkfasthet", "For fargen"], "Øke strekkfasthet")
+    },
+    "Klima, energi og miljøteknikk": {
+        "beskrivelse": "🌡️ Spesialister på inneklima og moderne energisparing. ❄️ Ventilasjon, varme og sanitet.",
+        "verktoy": "Måleinstrumenter, loddeutstyr, blikkenslagersaks.",
+        "utdanning": "📜 Vg1 Bygg -> Vg2 Klima, energi og miljøteknikk -> Lærlingid.",
+        "videre": "🎓 KEM-ingeniør, fagskole eller energi-spesialisering.",
+        "motivasjon": "🌍 Vil du ha en nøkkelrolle i det grønne skiftet? Her jobber du med teknologien som redder klimaet!",
+        "quiz": ("Hvorfor isolerer vi bygg?", ["Spare energi", "For tyngden"], "Spare energi")
+    },
+    "Overflateteknikk": {
+        "beskrivelse": "🎨 Beskytter og dekorerer bygg utvendig og innvendig. 🖌️ Maling, tapet og gulvlegging.",
+        "verktoy": "Sparkel, pensler, slipemaskin, malerulle.",
+        "utdanning": "📜 Vg1 Bygg -> Vg2 Overflateteknikk -> Lærlingid.",
+        "videre": "🎓 Mesterbrev, interiørdesign eller fargekonsulent.",
+        "motivasjon": "🌈 Er du kreativ? Her setter du den siste finishen som kunden faktisk ser hver dag!",
+        "quiz": ("Hva gjøres før maling?", ["Vaske og fjerne støv", "Male rett på"], "Vaske og fjerne støv")
+    },
+    "Rørlegger": {
+        "beskrivelse": "🚿 Installerer vann, varme og avløpssystemer. 🛠️ Viktig rolle i boliger og industri.",
+        "verktoy": "Rørkutter, rørnøkkel, trykkpumpe.",
+        "utdanning": "📜 Vg1 Bygg -> Vg2 Rørlegger -> Lærlingid.",
+        "videre": "🎓 Fagskole (VVS), mesterbrev eller ingeniør.",
+        "motivasjon": "💧 Ingen bygg fungerer uten rørleggeren. Vil du ha en sikker jobb med varierte utfordringer?",
+        "quiz": ("Hva gjør en vannlås?", ["Hindre kloakklukt", "Rense vann"], "Hindre kloakklukt")
+    },
+    "Treteknikk": {
+        "beskrivelse": "🏭 Industriell produksjon med tre som råstoff. ⚙️ Høyteknologisk produksjon av takstoler, vinduer og dører.",
+        "verktoy": "CNC-maskiner, automatiske sager, limpresser.",
+        "utdanning": "📜 Vg1 Bygg -> Vg2 Treteknikk -> Lærlingid.",
+        "videre": "🎓 Fagskole, produksjonsledelse eller ingeniør.",
+        "motivasjon": "🌲 Trives du best med maskiner og fabrikkdrift? Her skaper du fremtidens bærekraftige byggeklosser!",
+        "quiz": ("Hvilken tresort brukes mest til reisverk?", ["Gran", "Eik"], "Gran")
+    },
+    "Tømrer": {
+        "beskrivelse": "🏠 Oppføring av trebygninger fra reisverk til ferdig hus. 🔨 Den største faggruppen i bygg.",
+        "verktoy": "Hammer, sag, kappsag, laser, drill, vinkel.",
+        "utdanning": "📜 Vg1 Bygg -> Vg2 Tømrer -> Lærlingid.",
+        "videre": "🎓 Mesterbrev, fagskole eller arkitekt.",
+        "motivasjon": "🔨 Liker du å se et hus reise seg fra grunnen? Som tømrer skaper du trygge hjem for folk!",
+        "quiz": ("Hva er standard c/c på stendere?", ["60 cm", "100 cm"], "60 cm")
+    },
+    "Arbeidsmiljø og dokumentasjon": {
+        "beskrivelse": "🛡️ Sikkerhet og kvalitet. 📋 Planlegge arbeidet for å unngå ulykker.",
+        "verktoy": "SJA-skjemaer, sjekklister, verneutstyr.",
+        "utdanning": "🛡️ Integrert i alle byggfag (HMS).",
+        "videre": "🎓 HMS-leder, prosjektleder eller kvalitetssikrer.",
+        "motivasjon": "⚠️ Vil du ha ansvar for at alle kommer trygt hjem? En god leder på plassen er gull verdt!",
+        "quiz": ("Hva står HMS for?", ["Helse, Miljø og Sikkerhet", "Hele Min Snekker"], "Helse, Miljø og Sikkerhet")
+    },
+    "Yrkesfaglig fordypning": {
+        "beskrivelse": "🏢 Praksisperiode i bedrift. 🤝 Din sjanse til å få lærlingplass.",
+        "verktoy": "Eget verneutstyr, loggbok og interesse.",
+        "utdanning": "📈 En del av pensum på Vg1 og Vg2.",
+        "videre": "🚀 Veien til fast jobb starter her.",
+        "motivasjon": "🌟 Er du usikker? Bruk YFF til å teste flere fag før du bestemmer deg!",
+        "quiz": ("Viktigst i praksis?", ["Oppmøte og interesse", "Kunne alt"], "Oppmøte og interesse")
     }
 }
 
-# --- HOVEDINNHOLD ---
-if nav_valg == "📚 Infokanal":
-    st.header("Informasjonskanal")
-    sel = st.selectbox("Velg retning:", list(data_db.keys()))
-    f = data_db[sel]
+# --- FANER ---
+tab_info, tab_matte, tab_quiz, tab_leader = st.tabs(["📚 Infokanal", "📐 Praktisk matte", "🎮 Quiz", "🏆 Leaderboard"])
+
+with tab_info:
+    st.header("Informasjon om programfagene")
+    sel_fag = st.selectbox("Velg fagområde:", list(data_db.keys()))
+    f = data_db[sel_fag]
+    st.subheader(f"📍 {sel_fag}")
+    st.markdown(f"**Hva lærer man?**\n\n{f['beskrivelse']}")
     
-    st.markdown(f"### {sel}")
-    st.info(f["beskrivelse"])
-    
-    c1, c2 = st.columns(2)
-    with c1:
-        st.markdown("#### 🛠️ Verktøy")
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown("### 🛠️ Viktige verktøy")
         st.write(f["verktoy"])
-    with c2:
-        st.markdown("#### 🎓 Utdanningsløp")
+    with col2:
+        st.markdown("### 🎓 Utdanningsløp")
         st.write(f["utdanning"])
     
     st.success(f"**🚀 Videreutdanning:** {f['videre']}")
-    st.info(f"💡 **Motivasjon:** {f['motivasjon']}")
+    st.info(f"💡 **Til deg som er usikker:** {f['motivasjon']}")
 
-elif nav_valg == "📐 Praktisk matte":
-    st.header("Praktisk matematikk")
-    m_kat = st.selectbox("Velg tema:", ["Omkrets", "Areal", "Volum", "Prosent & Svinn", "Målestokk", "Vinkler"])
+with tab_matte:
+    st.header("📐 Praktisk matematikk")
+    m_kat = st.radio("Velg emne:", ["Omkrets", "Areal", "Volum", "Prosent & Svinn", "Målestokk", "Vinkler"], horizontal=True)
     
-    if m_kat == "Areal":
-        st.subheader("⬛ Arealberegning")
-        st.write("Areal forteller oss hvor stor en flate er ($m^2$). Brukes til parkett, gips og maling.")
-        st.latex(r"Areal = L \cdot B")
-        st.write("**Oppgave:** Et tak er 6 meter langt og 3 meter bredt. Hvor mange $m^2$ gipsplater trenger du?")
-        ans = st.radio("Velg svar:", ["9", "18", "20"], index=None)
-        if st.button("Sjekk svar"):
-            if ans == "18": st.success("Riktig! 6 * 3 = 18."); st.session_state.points += 5
-            else: st.error("Feil. Prøv igjen.")
+    if m_kat == "Omkrets":
+        st.write("### 📏 Omkrets – Hvor langt er det rundt?")
+        st.write("Omkretsen er summen av alle sidene. Formelen brukes til f.eks. liste rundt et vindu eller finne ut av hvor mange meter det er rundt et hus.")
+        st.latex(r"Omkrets = S_1 + S_2 + S_3 + S_4")
+        st.write("**Oppgave:** Et rom er 4m langt og 3m bredt. Hvor mange meter list trenger du?")
+        ans1 = st.radio("Svar:", ["7m", "14m", "12m"], index=None, key="m1")
+        if st.button("Sjekk Omkrets"):
+            if ans1 == "14m":
+                st.success("Riktig! (4+3+4+3)"); st.session_state.points += 5
+
+    elif m_kat == "Areal":
+        st.write("### ⬛ Areal – Hvor stor er en flate?")
+        st.write("Areal forteller hvor stor en flate er ($m^2$). Brukes til å regne ut hvor stort et gulv, hvor mye maling trenger eller ulike plater man trenger til et område.")
+        st.latex(r"Areal = L \times B")
+        st.write("**Oppgave:** Du skal legge gulv i en bod på 2,5m x 4m. Hvor mange m²?")
+        ans2 = st.radio("Svar:", ["6,5 m²", "10 m²", "8 m²"], index=None, key="m2")
+        if st.button("Sjekk Areal"):
+            if ans2 == "10 m²":
+                st.success("Helt rett! 2,5 * 4 = 10 m²"); st.session_state.points += 5
 
     elif m_kat == "Volum":
-        st.subheader("🧊 Volumberegning")
-        st.write("Volum brukes for å finne ut hvor mye en form rommer ($m^3$), for eksempel betong.")
-        st.latex(r"Volum = L \cdot B \cdot H")
-        st.write("**Oppgave:** En forskaling er 2m lang, 2m bred og 0,5m høy. Hvor mye betong går med?")
-        ans_v = st.radio("Svar:", ["2 m³", "4 m³", "1 m³"], index=None)
+        st.write("### 🧊 Volum – Innhold")
+        st.write("Volum forteller hvor mye en gjenstand rommer ($m^3$). Brukes for å beregne betong.")
+        st.latex(r"Volum = L \times B \times H")
+        st.write("**Oppgave:** En såle er 5m lang, 2m bred og 0,2m høy. Hvor mange m³ betong trenger du?")
+        ans_vol = st.radio("Svar:", ["2,0 m³", "1,0 m³", "7,2 m³"], index=None, key="m_vol")
         if st.button("Sjekk Volum"):
-            if ans_v == "2 m³": st.success("Riktig! 2 * 2 * 0,5 = 2."); st.session_state.points += 10
+            if ans_vol == "2,0 m³":
+                st.success("Riktig! 5 * 2 * 0,2 = 2,0 m³."); st.session_state.points += 10
+
+    elif m_kat == "Prosent & Svinn":
+        st.write("### 📈 Prosent og Svinn")
+        st.write("Prosent betyr “av hundre”. Hvis man skal finne ut av hvor mye man må betale hvis en material koster 550 kr men satt ned 35 %, vil formelen bli slik: 550kr x 35% : 100 = 192,5 kr. 550 kr - 192,5 kr = 357,5 kr. Vi legger til svinn (ofte 10%-15%) fordi noe kappes bort. Gange med 1,10.")
+        st.write("**Oppgave:** Du trenger 50 meter kledning. Med 10% svinn, hvor mye bestiller du?")
+        ans3 = st.radio("Svar:", ["55m", "50,1m"], index=None, key="m3")
+        if st.button("Sjekk Svinn"):
+            if ans3 == "55m":
+                st.success("Riktig! 50 + 5 = 55m."); st.session_state.points += 10
+
+    elif m_kat == "Målestokk":
+        st.write("### 🗺️ Målestokk")
+        st.write("Målestokk 1:50 betyr at virkeligheten er 50 ganger større enn tegningen. Vi ganger lengden på tegningen med tallet i målestokken for å finne hvor stort det er i virkeligheten.")
+        st.write("**Oppgave:** På tegning (1:50) måler du 10cm. Hvor langt er det i virkeligheten?")
+        ans4 = st.radio("Svar:", ["5 meter", "50 cm"], index=None, key="m4")
+        if st.button("Sjekk Målestokk"):
+            if ans4 == "5 meter":
+                st.success("Riktig! 10cm * 50 = 5m."); st.session_state.points += 10
 
     elif m_kat == "Vinkler":
-        st.subheader("📐 Vinkler og Pytagoras")
-        st.write("Bruk 3-4-5 metoden for å sjekke om et hjørne er 90 grader.")
+        st.write("### 📐 Vinkler (3-4-5 regelen)")
+        st.write("Vinkler måles i grader og viser hvor mye to streker åpner seg. For å sjekke 90 grader. Hvis sidene er 3 og 4, må diagonalen være 5. For å finne ut om en vinkel er 90 grader, kan man bruke formelen 60cm/80cm=100cm")
         st.latex(r"a^2 + b^2 = c^2")
-        st.write("**Oppgave:** Sidene er 3 meter og 4 meter. Hva må diagonalen være for at det skal være vinkel?")
-        ans_pyt = st.radio("Svar:", ["5 meter", "6 meter"], index=None)
+        st.write("**Oppgave:** Sidene er 60cm og 80cm. Hva er diagonalen i vinkel?")
+        ans5 = st.radio("Svar:", ["100cm", "140cm"], index=None, key="m5")
         if st.button("Sjekk Vinkel"):
-            if ans_pyt == "5 meter": st.success("Perfekt! Dette er '3-4-5-regelen'."); st.session_state.points += 15
+            if ans5 == "100cm":
+                st.success("Vinkelen er 90 grader!"); st.session_state.points += 20; st.balloons()
 
-elif nav_valg == "🎮 Quiz":
-    st.header("Dagens utfordring")
-    q_tema = st.selectbox("Velg tema:", list(data_db.keys()))
-    spm, valg, svar = data_db[q_tema]["quiz"]
+with tab_quiz:
+    st.header("🎮 Quiz: Test kunnskapen")
+    q_sel = st.selectbox("Velg quiz:", list(data_db.keys()), key="q_box")
+    spm, valg, svar = data_db[q_sel]["quiz"]
     st.write(f"### {spm}")
-    res = st.radio("Ditt valg:", valg, index=None)
-    if st.button("Lever svar"):
+    res = st.radio("Ditt svar:", valg, index=None)
+    if st.button("Sjekk Quiz"):
         if res == svar:
-            st.success("Riktig svar! +20 poeng")
-            st.session_state.points += 20
-            st.balloons()
-        else: st.error("Feil. Sjekk infokanalen og prøv igjen.")
+            st.success("Riktig!"); st.session_state.points += 20; st.balloons(); st.rerun()
+        else:
+            st.error("Feil svar, prøv igjen!")
 
-elif nav_valg == "🏆 Leaderboard":
-    st.header("Toppliste")
-    leader_df = pd.DataFrame({"Elev": [st.session_state.user_name, "Lærer-demo"], "Poeng": [st.session_state.points, 450]})
-    st.table(leader_df.sort_values(by="Poeng", ascending=False))
+with tab_leader:
+    st.table(pd.DataFrame({"Navn": [st.session_state.user_name, "Lærer"], "Poeng": [st.session_state.points, 400]}).sort_values("Poeng", ascending=False))
+
+
+
